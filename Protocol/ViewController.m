@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 
-#import "Protocol.h"
+#import "ProtocolManager.h"
 #import "Member.h"
 
 @interface ViewController ()
@@ -22,29 +22,45 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     
-    [[Protocol sharedInstance] setBaseURL:@"http://kingofti.me"];
+    [[ProtocolManager sharedInstance] setBaseURL:@"http://kingofti.me"];
     
-    NSDictionary *loginDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"josh@rokkincat.com", @"email", @"test01", @"password", nil];
+    [[ProtocolManager sharedInstance] setMockResponseOn:YES];
+    [[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"Josh Holtz, Bandit"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:@"/member" withMethod:kProtocolRouteGET];
+    [[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"Josh Holtz"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:[NSRegularExpression regularExpressionWithPattern:@"/member/(\\d+)?" options:NSRegularExpressionCaseInsensitive error:nil] withMethod:kProtocolRouteGET];
     
-    [[Protocol sharedInstance] doPostAsJSON:@"/session" params:loginDict withBlock:^(NSURLResponse *response, NSUInteger status, id jsonData){
+    [[ProtocolManager sharedInstance] doGet:@"/member" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
-        NSLog(@"Status - %d", status);
-        Member *member = [[Member alloc] initWithDictionary:jsonData];
-        NSLog(@"Logged in member - %@", member.firstName);
-        
-        NSString *cookie = [[((NSHTTPURLResponse*) response) allHeaderFields] objectForKey:@"Set-Cookie"];
-        [[Protocol sharedInstance] addHttpHeader:cookie forKey:@"Cookie"];
-        
-        [[Protocol sharedInstance] doGetAsJSON:@"/session" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, id jsonData){
-            
-            if ([jsonData isKindOfClass:[NSDictionary class]]) {
-                Member *member = [[Member alloc] initWithDictionary:jsonData];
-                NSLog(@"Logged in member (from session) - %@", [member firstName]);
-            }
-        } ];
-
+        NSLog(@"Member response - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         
     } ];
+    
+    [[ProtocolManager sharedInstance] doGet:@"/member/5" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+    
+        NSLog(@"Member 5 response - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        
+    } ];
+    
+//    NSDictionary *loginDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"josh@rokkincat.com", @"email", @"test01", @"password", nil];
+//    
+//    [[Protocol sharedInstance] doPostAsJSON:@"/session" params:loginDict withBlock:^(NSURLResponse *response, NSUInteger status, id jsonData){
+//        
+//        NSLog(@"Status - %d", status);
+//        Member *member = [[Member alloc] initWithDictionary:jsonData];
+//        NSLog(@"Logged in member - %@", member.firstName);
+//        
+//        NSString *cookie = [[((NSHTTPURLResponse*) response) allHeaderFields] objectForKey:@"Set-Cookie"];
+//        [[Protocol sharedInstance] addHttpHeader:cookie forKey:@"Cookie"];
+//        
+//        [[Protocol sharedInstance] doGetAsJSON:@"/session" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, id jsonData){
+//            
+//            if ([jsonData isKindOfClass:[NSDictionary class]]) {
+//                Member *member = [[Member alloc] initWithDictionary:jsonData];
+//                NSLog(@"Logged in member (from session) - %@", [member firstName]);
+//            }
+//        } ];
+//
+//        
+//    } ];
     
 //    [[RestCat sharedInstance] doGet:@"/member" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
 //        

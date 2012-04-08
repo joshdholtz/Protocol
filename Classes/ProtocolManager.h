@@ -6,17 +6,27 @@
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
+#define kProtocolRouteGET 0
+#define kProtocolRoutePOST 1
+#define kProtocolRoutePUT 2
+#define kProtocolRouteDELETE 3
+
 #import <UIKit/UIKit.h>
 
-@interface Protocol : NSObject
+@interface ProtocolManager : NSObject
 
 @property (nonatomic, strong) NSString *baseURL;
 @property (nonatomic, strong) NSMutableDictionary *httpHeaders;
+
+@property (nonatomic, assign) BOOL mockResponseOn;
 
 + (id)sharedInstance;
 
 - (void) addHttpHeader:(NSString*)value forKey:(NSString*)key;
 - (void) removeHttpHeaderForKey:(NSString*)key;
+
+- (void) registerMockResponse:(NSData*)response withRoute:(id)route withMethod:(NSUInteger)method;
+- (void) unregisterMockResponseForRoute:(id)route withMethod:(NSUInteger)method;
 
 - (void) doGetAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 - (void) doPostAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
