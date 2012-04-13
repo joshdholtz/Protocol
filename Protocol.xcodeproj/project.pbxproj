@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		035184EF1537A7CC000081DD /* me_coding.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 035184EE1537A7CC000081DD /* me_coding.jpg */; };
+		035184F21537B38F000081DD /* Button_Blue.png in Resources */ = {isa = PBXBuildFile; fileRef = 035184F11537B38F000081DD /* Button_Blue.png */; };
 		03B918A7153117F800ADFAEA /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B918A6153117F800ADFAEA /* UIKit.framework */; };
 		03B918A9153117F800ADFAEA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B918A8153117F800ADFAEA /* Foundation.framework */; };
 		03B918AB153117F800ADFAEA /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B918AA153117F800ADFAEA /* CoreGraphics.framework */; };
@@ -22,6 +24,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		035184EE1537A7CC000081DD /* me_coding.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = me_coding.jpg; path = ../../../Pictures/me_coding.jpg; sourceTree = "<group>"; };
+		035184F11537B38F000081DD /* Button_Blue.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Button_Blue.png; path = ../../../Downloads/Button_Blue.png; sourceTree = "<group>"; };
 		03B918A2153117F800ADFAEA /* Protocol.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Protocol.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		03B918A6153117F800ADFAEA /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		03B918A8153117F800ADFAEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -36,7 +40,7 @@
 		03B918BC153117F900ADFAEA /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
 		03B918BE153117F900ADFAEA /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		03B918BF153117F900ADFAEA /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		03B918C81531185600ADFAEA /* ProtocolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; path = ProtocolManager.h; sourceTree = "<group>"; };
+		03B918C81531185600ADFAEA /* ProtocolManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolManager.h; sourceTree = "<group>"; };
 		03B918C91531185600ADFAEA /* ProtocolManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolManager.m; sourceTree = "<group>"; };
 		03B918CA1531185600ADFAEA /* ProtocolObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolObject.h; sourceTree = "<group>"; };
 		03B918CB1531185600ADFAEA /* ProtocolObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolObject.m; sourceTree = "<group>"; };
@@ -89,6 +93,8 @@
 		03B918AC153117F800ADFAEA /* Protocol */ = {
 			isa = PBXGroup;
 			children = (
+				035184F11537B38F000081DD /* Button_Blue.png */,
+				035184EE1537A7CC000081DD /* me_coding.jpg */,
 				03B918CE153118AE00ADFAEA /* Member.h */,
 				03B918CF153118AE00ADFAEA /* Member.m */,
 				03B918B5153117F800ADFAEA /* AppDelegate.h */,
@@ -177,6 +183,8 @@
 				03B918B1153117F800ADFAEA /* InfoPlist.strings in Resources */,
 				03B918BA153117F900ADFAEA /* MainStoryboard_iPhone.storyboard in Resources */,
 				03B918BD153117F900ADFAEA /* MainStoryboard_iPad.storyboard in Resources */,
+				035184EF1537A7CC000081DD /* me_coding.jpg in Resources */,
+				035184F21537B38F000081DD /* Button_Blue.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

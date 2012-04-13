@@ -118,6 +118,105 @@ static ProtocolManager *sharedInstance = nil;
 
 }
 
+- (NSMutableURLRequest *) multipartRequestWithURL:(NSString*)route andDataDictionary:(NSData *) data
+{
+    // Create POST request
+    NSMutableURLRequest *mutipartPostRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self fullRoute:route]]];
+    [mutipartPostRequest setAllHTTPHeaderFields:_httpHeaders];
+    [mutipartPostRequest setHTTPMethod:@"POST"];
+    
+    // Add HTTP header info
+    // Note: POST boundaries are described here: http://www.vivtek.com/rfc1867.html
+    // and here http://www.w3.org/TR/html4/interact/forms.html
+    NSString *boundary = @"---------------------------14737809831466499882746641449";
+    NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
+    [mutipartPostRequest addValue:contentType forHTTPHeaderField: @"Content-Type"];
+    
+    NSMutableData *postbody = [NSMutableData data];
+    [postbody appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    [postbody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"userfile\"; filename=\"%@.jpg\"\r\n", @"thing"] dataUsingEncoding:NSUTF8StringEncoding]];
+    [postbody appendData:[[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+    [postbody appendData:[NSData dataWithData:data]];
+    [postbody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+    [mutipartPostRequest setHTTPBody:postbody];
+    
+    
+    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    [NSURLConnection sendAsynchronousRequest:mutipartPostRequest queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        NSLog(@"HERE");
+        if (error == nil) {
+            if (data == nil) {
+                NSLog(@"Data is nil");
+            } else {
+                NSLog(@"Data length - %d", [data length] );
+            }
+            
+            NSLog(@"Woot@ - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        } else {
+            NSLog(@"Error - %@", error);
+        }
+        
+    }];
+    
+    return mutipartPostRequest;
+}
+
+-(NSURLRequest *)doMulitpartPost:(NSString*)route params:(NSDictionary*)params withData:(NSData *)data
+{
+	//create the URL POST Request to tumblr
+	NSURL *tumblrURL = [NSURL URLWithString:[self fullRoute:route]];
+	NSMutableURLRequest *tumblrPost = [NSMutableURLRequest requestWithURL:tumblrURL];
+    [tumblrPost setAllHTTPHeaderFields:_httpHeaders];
+	[tumblrPost setHTTPMethod:@"POST"];
+	
+	//Add the header info
+	NSString *stringBoundary = [NSString stringWithString:@"0xKhTmLbOuNdArY"];
+	NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary];
+	[tumblrPost addValue:contentType forHTTPHeaderField: @"Content-Type"];
+	
+	//create the body
+	NSMutableData *postBody = [NSMutableData data];
+	[postBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+	
+//	//add key values from the NSDictionary object
+//	NSEnumerator *keys = [params keyEnumerator];
+//	int i;
+//	for (i = 0; i < [params count]; i++) {
+//		NSString *tempKey = [keys nextObject];
+//		[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",tempKey] dataUsingEncoding:NSUTF8StringEncoding]];
+//		[postBody appendData:[[NSString stringWithFormat:@"%@",[params objectForKey:tempKey]] dataUsingEncoding:NSUTF8StringEncoding]];
+//		[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+//	}
+    
+	//add data field and file data
+	[postBody appendData:[[NSString stringWithString:@"Content-Disposition: form-data; name=\"files\"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+	[postBody appendData:[[NSString stringWithString:@"Content-Type: image/jpeg\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+	[postBody appendData:[NSData dataWithData:data]];
+	[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
+	
+	//add the body to the post
+	[tumblrPost setHTTPBody:postBody];
+    
+    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    [NSURLConnection sendAsynchronousRequest:tumblrPost queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        NSLog(@"HERE");
+        if (error == nil) {
+            if (data == nil) {
+                NSLog(@"Data is nil");
+            } else {
+                NSLog(@"Data length - %d", [data length] );
+            }
+            
+            NSLog(@"Woot@ - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        } else {
+            NSLog(@"Error - %@", error);
+        }
+        
+    }];
+    
+	return tumblrPost;
+}
+
 #pragma mark - 
 #pragma mark Send Requests For JSON
 - (void) doGetAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
