@@ -118,110 +118,110 @@ static ProtocolManager *sharedInstance = nil;
 
 }
 
-- (NSMutableURLRequest *) multipartRequestWithURL:(NSString*)route andDataDictionary:(NSData *) data
-{
-    // Create POST request
+#pragma mark - 
+#pragma mark Send Multipart Requests For JSON
+
+- (void) doMultipartPost:(NSString*)route andData:(NSData*)data withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id json))block {
+    
+    // Calls doMultipartPost, parses JSON, and calls JSON block
+    [self doMultipartPost:route andData:data withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        
+        block(response, status, jsonData);
+    } ];
+    
+}
+
+- (void) doMultipartPost:(NSString*)route andDataArray:(NSArray*)dataArray withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id json))block {
+    
+    // Calls doMultipartPost, parses JSON, and calls JSON block
+    [self doMultipartPost:route andDataArray:dataArray withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        
+        block(response, status, jsonData);
+    } ];
+    
+}
+
+- (void) doMultipartPost:(NSString*)route andDataDictionary:(NSDictionary*) dataDicts withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id json))block {
+    
+    // Calls doMultipartPost, parses JSON, and calls JSON block
+    [self doMultipartPost:route andDataDictionary:dataDicts withJSONBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        
+        block(response, status, jsonData);
+    } ];
+    
+}
+
+#pragma mark - 
+#pragma mark Send Multipart Requests
+
+- (void) doMultipartPost:(NSString*)route andData:(NSData*)data withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    // Puts a data into an array
+    [self doMultipartPost:route andDataArray:[[NSArray alloc] initWithObjects:data, nil] withBlock:block];
+}
+
+- (void) doMultipartPost:(NSString*)route andDataArray:(NSArray*)dataArray withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    
+    // Puts an array of data into a dictionary
+    NSMutableArray *dataNames = [[NSMutableArray alloc] initWithCapacity:[dataArray count]];
+    for(int i = 0; i < [dataArray count]; i++) {
+        [dataNames addObject:[[NSString alloc] initWithFormat:@"file%d", i]];
+    }
+ 
+    [self doMultipartPost:route andDataDictionary:[[NSDictionary alloc] initWithObjects:dataArray forKeys:dataNames]  withBlock:block];
+}
+
+- (void) doMultipartPost:(NSString*)route andDataDictionary:(NSDictionary*) dataDicts withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    
+    // Builds request
     NSMutableURLRequest *mutipartPostRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[self fullRoute:route]]];
     [mutipartPostRequest setAllHTTPHeaderFields:_httpHeaders];
     [mutipartPostRequest setHTTPMethod:@"POST"];
     
-    // Add HTTP header info
-    // Note: POST boundaries are described here: http://www.vivtek.com/rfc1867.html
-    // and here http://www.w3.org/TR/html4/interact/forms.html
+    /*
+     * Sets post boundaries
+     */
     NSString *boundary = @"---------------------------14737809831466499882746641449";
     NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
     [mutipartPostRequest addValue:contentType forHTTPHeaderField: @"Content-Type"];
     
     NSMutableData *postbody = [NSMutableData data];
     [postbody appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-    [postbody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"userfile\"; filename=\"%@.jpg\"\r\n", @"thing"] dataUsingEncoding:NSUTF8StringEncoding]];
-    [postbody appendData:[[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
-    [postbody appendData:[NSData dataWithData:data]];
+    
+    NSArray *keys = [dataDicts allKeys];
+    for(int i = 0; i < [keys count]; i++) {
+        [postbody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"file%d\"; filename=\"%@\"\r\n", i, [keys objectAtIndex:i]] dataUsingEncoding:NSUTF8StringEncoding]];
+        [postbody appendData:[[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+        [postbody appendData:[dataDicts objectForKey:[keys objectAtIndex:i]]];
+        
+        if (i != ([keys count] - 1)) {
+            [postbody appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+        }
+        
+    }
+    
     [postbody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
     [mutipartPostRequest setHTTPBody:postbody];
     
-    
+    // Captures response
     NSOperationQueue *queue = [[NSOperationQueue alloc] init];
     [NSURLConnection sendAsynchronousRequest:mutipartPostRequest queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-        NSLog(@"HERE");
-        if (error == nil) {
-            if (data == nil) {
-                NSLog(@"Data is nil");
-            } else {
-                NSLog(@"Data length - %d", [data length] );
-            }
-            
-            NSLog(@"Woot@ - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-        } else {
-            NSLog(@"Error - %@", error);
-        }
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            int status = [((NSHTTPURLResponse*) response) statusCode];
+            block(response, status, data);
+        });
         
     }];
-    
-    return mutipartPostRequest;
-}
-
--(NSURLRequest *)doMulitpartPost:(NSString*)route params:(NSDictionary*)params withData:(NSData *)data
-{
-	//create the URL POST Request to tumblr
-	NSURL *tumblrURL = [NSURL URLWithString:[self fullRoute:route]];
-	NSMutableURLRequest *tumblrPost = [NSMutableURLRequest requestWithURL:tumblrURL];
-    [tumblrPost setAllHTTPHeaderFields:_httpHeaders];
-	[tumblrPost setHTTPMethod:@"POST"];
-	
-	//Add the header info
-	NSString *stringBoundary = [NSString stringWithString:@"0xKhTmLbOuNdArY"];
-	NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",stringBoundary];
-	[tumblrPost addValue:contentType forHTTPHeaderField: @"Content-Type"];
-	
-	//create the body
-	NSMutableData *postBody = [NSMutableData data];
-	[postBody appendData:[[NSString stringWithFormat:@"--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	
-//	//add key values from the NSDictionary object
-//	NSEnumerator *keys = [params keyEnumerator];
-//	int i;
-//	for (i = 0; i < [params count]; i++) {
-//		NSString *tempKey = [keys nextObject];
-//		[postBody appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",tempKey] dataUsingEncoding:NSUTF8StringEncoding]];
-//		[postBody appendData:[[NSString stringWithFormat:@"%@",[params objectForKey:tempKey]] dataUsingEncoding:NSUTF8StringEncoding]];
-//		[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-//	}
-    
-	//add data field and file data
-	[postBody appendData:[[NSString stringWithString:@"Content-Disposition: form-data; name=\"files\"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
-	[postBody appendData:[[NSString stringWithString:@"Content-Type: image/jpeg\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
-	[postBody appendData:[NSData dataWithData:data]];
-	[postBody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",stringBoundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	
-	//add the body to the post
-	[tumblrPost setHTTPBody:postBody];
-    
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-    [NSURLConnection sendAsynchronousRequest:tumblrPost queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-        NSLog(@"HERE");
-        if (error == nil) {
-            if (data == nil) {
-                NSLog(@"Data is nil");
-            } else {
-                NSLog(@"Data length - %d", [data length] );
-            }
-            
-            NSLog(@"Woot@ - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-        } else {
-            NSLog(@"Error - %@", error);
-        }
-        
-    }];
-    
-	return tumblrPost;
 }
 
 #pragma mark - 
 #pragma mark Send Requests For JSON
-- (void) doGetAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+- (void) doGet:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
-    
+    // Calls doGet, parses JSON, and calls JSON block
     [self doGet:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
         id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
@@ -232,8 +232,9 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doPostAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+- (void) doPost:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
+    // Calls doPost, parses JSON, and calls JSON block
     [self doPost:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
         id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
@@ -244,8 +245,9 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doPutAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+- (void) doPut:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
+    // Calls doPost, parses JSON, and calls JSON block
     [self doPut:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
         id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
@@ -256,8 +258,9 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doDeleteAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+- (void) doDelete:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
+    // Calls doDelete, parses JSON, and calls JSON block
     [self doDelete:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
         id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
@@ -282,6 +285,7 @@ static ProtocolManager *sharedInstance = nil;
         
     } else {
     
+        // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         [request setAllHTTPHeaderFields:_httpHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
@@ -289,7 +293,7 @@ static ProtocolManager *sharedInstance = nil;
         
         NSOperationQueue *queue = [[NSOperationQueue alloc] init];
         
-        //Capturing server response
+        // Captures response
         [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -317,9 +321,7 @@ static ProtocolManager *sharedInstance = nil;
         NSString *queryStr = [self dictToQueryString:params];
         NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [queryStr length]];
         
-        
-        NSLog(@"Query - %@", queryStr);
-        
+        // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         [request setAllHTTPHeaderFields:_httpHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
@@ -330,7 +332,7 @@ static ProtocolManager *sharedInstance = nil;
         
         NSOperationQueue *queue = [[NSOperationQueue alloc] init];
         
-        //Capturing server response
+        // Captures response
         [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -357,6 +359,7 @@ static ProtocolManager *sharedInstance = nil;
         NSString *queryStr = [self dictToQueryString:params];
         NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [queryStr length]];
         
+        // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         [request setAllHTTPHeaderFields:_httpHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
@@ -367,7 +370,7 @@ static ProtocolManager *sharedInstance = nil;
         
         NSOperationQueue *queue = [[NSOperationQueue alloc] init];
         
-        //Capturing server response
+        // Captures response
         [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -392,6 +395,7 @@ static ProtocolManager *sharedInstance = nil;
         
     } else {
     
+        // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
         [request setAllHTTPHeaderFields:_httpHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
@@ -399,7 +403,7 @@ static ProtocolManager *sharedInstance = nil;
         
         NSOperationQueue *queue = [[NSOperationQueue alloc] init];
         
-        //Capturing server response
+        // Captures response
         [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
             
             dispatch_async(dispatch_get_main_queue(), ^{

@@ -28,13 +28,18 @@
 - (void) registerMockResponse:(NSData*)response withRoute:(id)route withMethod:(NSUInteger)method;
 - (void) unregisterMockResponseForRoute:(id)route withMethod:(NSUInteger)method;
 
-- (NSMutableURLRequest *) multipartRequestWithURL:(NSString*)route andDataDictionary:(NSData *) data;
--(NSURLRequest *)doMulitpartPost:(NSString*)route params:(NSDictionary*)params withData:(NSData *)data;
+- (void) doMultipartPost:(NSString*)route andData:(NSData*)data withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
+- (void) doMultipartPost:(NSString*)route andDataArray:(NSArray*) dataArray withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
+- (void) doMultipartPost:(NSString*)route andDataDictionary:(NSDictionary*) dataDicts withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 
-- (void) doGetAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
-- (void) doPostAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
-- (void) doPutAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
-- (void) doDeleteAsJSON:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
+- (void) doMultipartPost:(NSString*)route andData:(NSData*)data withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
+- (void) doMultipartPost:(NSString*)route andDataArray:(NSArray*) dataArray withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
+- (void) doMultipartPost:(NSString*)route andDataDictionary:(NSDictionary*) dataDicts withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
+
+- (void) doGet:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
+- (void) doPost:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
+- (void) doPut:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
+- (void) doDelete:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 
 - (void) doGet:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
 - (void) doPost:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
