@@ -4,7 +4,8 @@ Protocol is HTTP requests made simple. One method to call to send off a GET, POS
 
 Features
 -----------
-* Settings of base URL for all requests
+* Setting of base URL for all requests
+* Enabline of activity indicator in status bar
 * Send GET, POST, PUT, and DELETE requests
 * Pass in block to get raw NSData or serialized NSArray or NSDicitionary from a JSON response
 * Map JSON responses to models
