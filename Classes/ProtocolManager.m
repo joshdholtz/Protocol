@@ -420,7 +420,11 @@ static ProtocolManager *sharedInstance = nil;
 #pragma mark - Private
 
 - (NSString*)fullRoute:(NSString*)route {
-    return [[NSString alloc] initWithFormat:@"%@%@", _baseURL, route];
+    if ([route hasPrefix:@"http"]) {
+        return route;
+    } else {
+        return [[NSString alloc] initWithFormat:@"%@%@", _baseURL, route];
+    }
 }
 
 - (NSString *)dictToQueryString:(NSDictionary*)dict {
