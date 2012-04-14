@@ -33,6 +33,8 @@
 //        [[ProtocolManager sharedInstance] multipartRequestWithURL:@"/fileupload.php" andDataArray:[[NSArray alloc] initWithObjects:data, data, nil]];
 //    }
     
+//    [[ProtocolManager sharedInstance] setNetworkActivityIndicatorVisible:NO];
+//    
 //    [[ProtocolManager sharedInstance] doGet:@"http://www.housecatscentral.com/cat1.jpg" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
 //       
 //        if (status == 200) {

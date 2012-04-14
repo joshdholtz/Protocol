@@ -12,6 +12,8 @@
 
 @interface ProtocolManager()
 
+@property (nonatomic, assign) int numberOfActiveRequsts;
+
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesGET;
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesPOST;
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesPUT;
@@ -27,6 +29,9 @@
 
 @synthesize baseURL = _baseURL;
 @synthesize httpHeaders = _httpHeaders;
+
+@synthesize networkActivityIndicatorVisible = _networkActivityIndicatorVisible;
+@synthesize numberOfActiveRequsts = _numberOfRequsts;
 
 @synthesize mockResponseOn = _mockResponseOn;
 @synthesize mockResponsesGET = _mockResponsesGET;
@@ -54,6 +59,10 @@ static ProtocolManager *sharedInstance = nil;
     self = [super init];
     
     if (self) {
+        
+        _networkActivityIndicatorVisible = NO;
+        _numberOfRequsts = 0;
+        
         _httpHeaders = [[NSMutableDictionary alloc] init];
         _mockResponsesGET = [[NSMutableDictionary alloc] init];
         _mockResponsesPOST = [[NSMutableDictionary alloc] init];
@@ -226,16 +235,8 @@ static ProtocolManager *sharedInstance = nil;
     [postbody appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
     [mutipartPostRequest setHTTPBody:postbody];
     
-    // Captures response
-    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-    [NSURLConnection sendAsynchronousRequest:mutipartPostRequest queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            int status = [((NSHTTPURLResponse*) response) statusCode];
-            block(response, status, data);
-        });
-        
-    }];
+    // Sends request asynchronous
+    [self sendAsynchronousRequest:mutipartPostRequest withBlock:block];
 }
 
 #pragma mark - 
@@ -307,7 +308,7 @@ static ProtocolManager *sharedInstance = nil;
     } else {
         
         if ([_cachedResponsesGET objectForKey:route]) {
-            NSLog(@"Using cached copy");
+            
             dispatch_async(dispatch_get_main_queue(), ^{
                 block(nil, 200, [_cachedResponsesGET objectForKey:route]);
             });
@@ -320,17 +321,8 @@ static ProtocolManager *sharedInstance = nil;
             [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
             [request setHTTPMethod:@"GET"];
             
-            NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-            
-            // Captures response
-            [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-            
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    int status = [((NSHTTPURLResponse*) response) statusCode];
-                    block(response, status, data);
-                });
-                
-            }];
+            // Sends request asynchronous
+            [self sendAsynchronousRequest:request withBlock:block];
             
         }
         
@@ -361,17 +353,8 @@ static ProtocolManager *sharedInstance = nil;
         [request addValue:contentLengthStr forHTTPHeaderField:@"Content-Length"];
         [request setHTTPBody:[queryStr dataUsingEncoding:NSUTF8StringEncoding]];
         
-        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-        
-        // Captures response
-        [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                int status = [((NSHTTPURLResponse*) response) statusCode];
-                block(response, status, data);
-            });
-            
-        }];
+        // Sends request asynchronous
+        [self sendAsynchronousRequest:request withBlock:block];
         
     }
 }
@@ -399,17 +382,8 @@ static ProtocolManager *sharedInstance = nil;
         [request addValue:contentLengthStr forHTTPHeaderField:@"Content-Length"];
         [request setHTTPBody:[queryStr dataUsingEncoding:NSUTF8StringEncoding]];
         
-        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-        
-        // Captures response
-        [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                int status = [((NSHTTPURLResponse*) response) statusCode];
-                block(response, status, data);
-            });
-            
-        }];
+        // Sends request asynchronous
+        [self sendAsynchronousRequest:request withBlock:block];
         
     }
     
@@ -432,23 +406,31 @@ static ProtocolManager *sharedInstance = nil;
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
         [request setHTTPMethod:@"DELETE"];
         
-        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-        
-        // Captures response
-        [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-            
-            dispatch_async(dispatch_get_main_queue(), ^{
-                int status = [((NSHTTPURLResponse*) response) statusCode];
-                block(response, status, data);
-            });
-            
-        }];
+        // Sends request asynchronous
+        [self sendAsynchronousRequest:request withBlock:block];
         
     }
     
 }
 
 #pragma mark - Private
+
+- (void) sendAsynchronousRequest:(NSMutableURLRequest*)request withBlock: (void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self requestNetworkActivityIndicator];
+    
+    // Captures response
+    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+    [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        
+        [self releaseNetworkActivityIndicator];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            int status = [((NSHTTPURLResponse*) response) statusCode];
+            block(response, status, data);
+        });
+        
+    }];
+}
 
 - (NSString*)fullRoute:(NSString*)route {
     if ([route hasPrefix:@"http"]) {
@@ -515,6 +497,27 @@ static ProtocolManager *sharedInstance = nil;
     
     return nil;
     
+}
+
+- (void)requestNetworkActivityIndicator {
+    if ([self networkActivityIndicatorVisible]) {
+        UIApplication* app = [UIApplication sharedApplication];
+        app.networkActivityIndicatorVisible = YES;
+    }
+    
+    self.numberOfActiveRequsts++;
+}
+
+- (void)releaseNetworkActivityIndicator {
+    self.numberOfActiveRequsts--;
+	if(self.numberOfActiveRequsts <= 0) {
+		UIApplication* app = [UIApplication sharedApplication];
+		app.networkActivityIndicatorVisible = NO;
+	}
+    
+	if (self.numberOfActiveRequsts < 0) {
+		self.numberOfActiveRequsts = 0;
+    }
 }
 
 @end

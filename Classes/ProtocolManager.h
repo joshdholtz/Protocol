@@ -20,6 +20,8 @@
 
 @property (nonatomic, assign) BOOL mockResponseOn;
 
+@property (nonatomic, assign) BOOL networkActivityIndicatorVisible;
+
 + (id)sharedInstance;
 
 - (void) addHttpHeader:(NSString*)value forKey:(NSString*)key;
