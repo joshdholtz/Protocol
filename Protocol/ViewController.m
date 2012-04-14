@@ -62,13 +62,17 @@
     
 //    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
 //    
-//    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"me_coding" ofType:@"jpg"];  
-//    NSData *data = [NSData dataWithContentsOfFile:filePath];
-//    if (data) {
-//        NSLog(@"Data length - %d", [data length]);
-//        
-//        [[ProtocolManager sharedInstance] multipartRequestWithURL:@"/fileupload.php" andDataArray:[[NSArray alloc] initWithObjects:data, data, nil]];
-//    }
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"me_coding" ofType:@"jpg"];  
+    NSData *data = [NSData dataWithContentsOfFile:filePath];
+    if (data) {
+        NSLog(@"Data length - %d", [data length]);
+        
+        [[ProtocolManager sharedInstance] doMultipartPost:@"upload.php" andData:data withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+            if (status == 200) {
+                NSLog(@"File upload was successful");
+            }
+        }];
+    }
     
 //    [[ProtocolManager sharedInstance] setNetworkActivityIndicatorVisible:NO];
 //    
@@ -83,6 +87,7 @@
 //                if (status == 200) {
 //                    NSLog(@"Got it again - %d", [data length]);
 //                    [[ProtocolManager sharedInstance] removeCachedResponse:@"http://www.housecatscentral.com/cat1.jpg"];
+//                    [[ProtocolManager sharedInstance] removeAllCachedResponses];
 //                    
 //                    [[ProtocolManager sharedInstance] doGet:@"http://www.housecatscentral.com/cat1.jpg" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
 //                        
@@ -118,17 +123,17 @@
 //        
 //    } ];
     
-//    NSDictionary *loginDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"josh@rokkincat.com", @"email", @"test01", @"password", nil];
-//    
-//    [[ProtocolManager sharedInstance] doPost:@"/session" params:loginDict withJSONBlock:^(NSURLResponse *response, NSUInteger status, id jsonData){
-//        
-//        NSLog(@"Status - %d", status);
-//        Member *member = [[Member alloc] initWithDictionary:jsonData];
-//        NSLog(@"Logged in member - %@", member.firstName);
-//        
-//        NSString *cookie = [[((NSHTTPURLResponse*) response) allHeaderFields] objectForKey:@"Set-Cookie"];
-//        [[ProtocolManager sharedInstance] addHttpHeader:cookie forKey:@"Cookie"];
-//        
+    NSDictionary *loginDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"josh@rokkincat.com", @"email", @"test01", @"password", nil];
+    
+    [[ProtocolManager sharedInstance] doPost:@"/session" params:loginDict withJSONBlock:^(NSURLResponse *response, NSUInteger status, id jsonData){
+        
+        NSLog(@"Status - %d", status);
+        Member *member = [[Member alloc] initWithDictionary:jsonData];
+        NSLog(@"Logged in member - %@", member.firstName);
+        
+        NSString *cookie = [[((NSHTTPURLResponse*) response) allHeaderFields] objectForKey:@"Set-Cookie"];
+        [[ProtocolManager sharedInstance] addHttpHeader:cookie forKey:@"Cookie"];
+        
 //        UIImage *image = [UIImage imageNamed:@"me_coding.jpg"];
 //        NSData *data = UIImageJPEGRepresentation(image, .9);
 //        [[ProtocolManager sharedInstance] multipartRequestWithURL:@"/file" andDataArray:[[NSArray alloc] initWithObjects:data, data, nil] withBlock:^(NSURLResponse *response, NSUInteger status, id jsonData){
@@ -148,7 +153,7 @@
 //        } ];
 //
 //        
-//    } ];
+    } ];
     
 //    [[RestCat sharedInstance] doGet:@"/member" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
 //        

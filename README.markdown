@@ -4,9 +4,13 @@ RestCat
 Examples - Basic Requests
 -----------
 
-###Set base url
+### Initializations (probably put in AppDelegate?)
 	
-	[[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
+	// Sets the base url to be used in all request (unless route in request is a full route)
+	[[ProtocolManager sharedInstance] setBaseURL:@"http://joshdholtz.com"];
+
+	// Enables the activity indicator in the status bar
+	[[ProtocolManager sharedInstance] setNetworkActivityIndicatorVisible:YES];
 
 ### Make GET request
 	// Gets a JSON member object
@@ -80,3 +84,46 @@ Examples - Models
 		}
 
 	}];
+
+Examples - More requests!
+-----------
+### Persistant headers (for session perhaps?)
+	NSDictionary *loginDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"joshdholtz@gmail.com", @"email", @"test01", @"password", nil];
+
+	[[ProtocolManager sharedInstance] doPost:@"/session" params:loginDict withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json){
+
+		NSLog(@"Status - %d", status);
+		Member *member = [[Member alloc] initWithDictionary:json];
+		NSLog(@"Logged in member - %@", member.firstName);
+
+		NSString *cookie = [[((NSHTTPURLResponse*) response) allHeaderFields] objectForKey:@"Set-Cookie"];
+		[[ProtocolManager sharedInstance] addHttpHeader:cookie forKey:@"Cookie"];
+
+	} ];
+
+### File upload
+	NSString *filePath = [[NSBundle mainBundle] pathForResource:@"me_coding" ofType:@"jpg"];  
+	NSData *data = [NSData dataWithContentsOfFile:filePath];
+	if (data) {
+		NSLog(@"Data length - %d", [data length]);
+
+		[[ProtocolManager sharedInstance] doMultipartPost:@"upload.php" andData:data withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+			if (status == 200) {
+				NSLog(@"File upload was successful");
+			}
+		}];
+	}
+
+### Caching of route response (for images perhaps?)
+	[[ProtocolManager sharedInstance] doGet:@"http://www.housecatscentral.com/cat1.jpg" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+
+		if (status == 200) {
+			NSLog(@"Got it - %d", [data length]);
+			[[ProtocolManager sharedInstance] addCachedResponse:@"http://www.housecatscentral.com/cat1.jpg" withData:data];
+		}
+
+	}];
+
+	// Need to explicitly remove cached route response when done
+	[[ProtocolManager sharedInstance] removeCachedResponse:@"httAp://www.housecatscentral.com/cat1.jpg"]; // Removes single cached route
+	[[ProtocolManager sharedInstance] removeAllCachedResponses]; // Removes all cached routes
