@@ -11,5 +11,6 @@
 @interface Member : ProtocolObject
 
 @property (nonatomic, strong) NSString* firstName;
+@property (nonatomic, strong) NSString* lastName;
 
 @end

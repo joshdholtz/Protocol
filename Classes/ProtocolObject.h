@@ -10,6 +10,8 @@
 
 @interface ProtocolObject : NSObject
 
++ (NSArray*)createWithArray:(NSArray*)jsonArray;
+
 - (id) initWithDictionary:(NSDictionary*)dict;
 
 - (NSDictionary*) mapKeysToProperties;

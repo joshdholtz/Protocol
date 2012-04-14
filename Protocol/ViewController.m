@@ -20,9 +20,46 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
     
-//    [[ProtocolManager sharedInstance] setBaseURL:@"http://kingofti.me"];
+    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
+    
+    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+        
+        NSLog(@"Member response - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        
+    }];
+    
+    // Gets a JSON member object
+    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+        
+        if ([json isKindOfClass:[NSDictionary class]]) {
+            NSLog(@"Member response as dictionary - %@", json);
+        }
+        
+    }];
+    
+    // Gets a JSON member object
+    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+        
+        if ([json isKindOfClass:[NSDictionary class]]) {
+            Member *member = [[Member alloc] initWithDictionary:json];
+            NSLog(@"Member - %@ %@", member.firstName, member.lastName);
+        }
+        
+    }];
+    
+    // Gets a JSON array of member objects
+    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=members" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+        
+        if ([json isKindOfClass:[NSArray class]]) {
+            NSArray *members = [Member createWithArray:json];
+            for (Member *member in members) {
+                NSLog(@"Member in members - %@ %@", member.firstName, member.lastName);
+            }
+        }
+        
+    }];
+    
 //    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
 //    
 //    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"me_coding" ofType:@"jpg"];  

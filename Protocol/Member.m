@@ -11,10 +11,12 @@
 @implementation Member
 
 @synthesize firstName = _firstName;
+@synthesize lastName = _lastName;
 
 - (NSDictionary *)mapKeysToProperties {
     return [[NSDictionary alloc] initWithObjectsAndKeys:
             @"firstName", @"first_name",
+            @"lastName", @"last_name",
             nil ];
 }
 

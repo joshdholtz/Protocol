@@ -10,6 +10,17 @@
 
 @implementation ProtocolObject
 
++ (NSArray*)createWithArray:(NSArray*)jsonArray {
+    NSMutableArray *array = [[NSMutableArray alloc] init];
+    for (NSDictionary *dict in jsonArray) {
+        Class protocolObjectClass = [self class];
+        NSLog(@"This class? %@", protocolObjectClass);
+        [array addObject:[[protocolObjectClass alloc] initWithDictionary:dict]];
+    }
+    
+    return array;
+}
+
 - (id)initWithDictionary:(NSDictionary *)dict {
     self = [self init];
     if (self) {
