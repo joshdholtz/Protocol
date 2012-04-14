@@ -49,10 +49,10 @@ Examples - Models
 	@synthesize lastName = _lastName;
 
 	- (NSDictionary *)mapKeysToProperties {
-		    return [[NSDictionary alloc] initWithObjectsAndKeys:
-				@"firstName", @"first_name",
-					    @"lastName", @"last_name",
-							nil ];
+		return [[NSDictionary alloc] initWithObjectsAndKeys:
+			@"firstName", @"first_name",
+			@"lastName", @"last_name",
+			nil ];
 	}
 
 	@end
