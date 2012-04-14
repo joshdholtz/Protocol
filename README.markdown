@@ -127,3 +127,37 @@ Examples - More requests!
 	// Need to explicitly remove cached route response when done
 	[[ProtocolManager sharedInstance] removeCachedResponse:@"httAp://www.housecatscentral.com/cat1.jpg"]; // Removes single cached route
 	[[ProtocolManager sharedInstance] removeAllCachedResponses]; // Removes all cached routes
+
+Examples - Mock responses (for when the API isn't done but you need to test)
+-----------
+### Set mock responses
+	// Enables mock responses
+	[[ProtocolManager sharedInstance] setMockResponseOn:YES];
+
+	// Sets a string response for a route of "/members"
+	[[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"[{\"first_name\":\"Josh\",\"last_name\":\"Holtz\"},{\"first_name\":\"Joshua\",\"last_name\":\"Holtz\"},{\"first_name\":\"Jossshhhhhh\",\"last_name\":\"Holtz\"}]"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:@"/members" withMethod:kProtocolRouteGET];
+
+	// Sets a string response for a route defined by a regex for "/members/(\\d+)?"
+	[[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"{\"first_name\":\"Josh\",\"last_name\":\"Holtz\"}"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:[NSRegularExpression regularExpressionWithPattern:@"/member/(\\d+)?" options:NSRegularExpressionCaseInsensitive error:nil] withMethod:kProtocolRouteGET];
+
+	// Gets a JSON member object
+	[[ProtocolManager sharedInstance] doGet:@"/member/4" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+
+		if ([json isKindOfClass:[NSDictionary class]]) {
+			Member *member = [[Member alloc] initWithDictionary:json];
+			NSLog(@"Member - %@ %@", member.firstName, member.lastName);
+		}
+
+	}];
+
+	// Gets a JSON array of member objects
+	[[ProtocolManager sharedInstance] doGet:@"/members" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+
+		if ([json isKindOfClass:[NSArray class]]) {
+			NSArray *members = [Member createWithArray:json];
+			for (Member *member in members) {
+				NSLog(@"Member in members - %@ %@", member.firstName, member.lastName);
+			}
+		}
+
+	}];
