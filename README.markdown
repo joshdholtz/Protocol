@@ -1,16 +1,17 @@
 Protocol
 =========
 Protocol is HTTP requests made simple. One method to call to send off a GET, POST, PUT, or DELETE. Pass in a block to that method to handle its response there you have it.
-=========
-* Features
-	* Settings of base URL for all requests
-	* Send GET, POST, PUT, and DELETE requests
-	* Pass in block to get raw NSData or serialized NSArray or NSDicitionary from a JSON response
-	* Map JSON responses to models
-	* Add headers to be set on each request (great for sessions)
-	* Easy, easy file upload
-	* Manual caching of route responses (great for images)
-	* Enabling of mock responses (great for when an API isn't ready yet)
+
+Features
+-----------
+* Settings of base URL for all requests
+* Send GET, POST, PUT, and DELETE requests
+* Pass in block to get raw NSData or serialized NSArray or NSDicitionary from a JSON response
+* Map JSON responses to models
+* Add headers to be set on each request (great for sessions)
+* Easy, easy file upload
+* Manual caching of route responses (great for images)
+* Enabling of mock responses (great for when an API isn't ready yet)
 
 
 Examples - Basic Requests
