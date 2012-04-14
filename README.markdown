@@ -1,6 +1,7 @@
 Protocol
 =========
 Protocol is HTTP requests made simple. One method to call to send off a GET, POST, PUT, or DELETE. Pass in a block to that method to handle its response there you have it.
+=========
 * Features
 	* Settings of base URL for all requests
 	* Send GET, POST, PUT, and DELETE requests
