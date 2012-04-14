@@ -9,6 +9,7 @@
 #import "ViewController.h"
 
 #import "ProtocolManager.h"
+#import "ProtocolPersist.h"
 #import "Member.h"
 
 @interface ViewController ()
@@ -27,9 +28,10 @@
 //        
 //        NSLog(@"Member response - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 //        
+//        
 //    }];
 //    
-//    // Gets a JSON member object
+    // Gets a JSON member object
 //    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
 //        
 //        if ([json isKindOfClass:[NSDictionary class]]) {
@@ -38,15 +40,27 @@
 //        
 //    }];
 //    
-//    // Gets a JSON member object
-//    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
-//        
-//        if ([json isKindOfClass:[NSDictionary class]]) {
-//            Member *member = [[Member alloc] initWithDictionary:json];
-//            NSLog(@"Member - %@ %@", member.firstName, member.lastName);
-//        }
-//        
-//    }];
+    // Gets a JSON member object
+    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+        
+        if ([json isKindOfClass:[NSDictionary class]]) {
+            Member *member = [[Member alloc] initWithDictionary:json];
+            NSLog(@"Member - %d %@ %@", member.memberId, member.firstName, member.lastName);
+            
+            [[ProtocolPersist sharedInstance] save:member];
+            
+            [[ProtocolPersist sharedInstance] get:[Member class]];
+        }
+        
+    }];
+    
+//    Member *member = [[Member alloc] init];
+//    [member setFirstName:@"Bandit"];
+//    [member setLastName:@"TheCat"];
+//    [[ProtocolPersist sharedInstance] save:member];
+//    
+//    [[ProtocolPersist sharedInstance] get:[Member class]];
+    
 //    
 //    // Gets a JSON array of member objects
 //    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=members" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
@@ -107,33 +121,33 @@
 //        
 //    }];
     
-    [[ProtocolManager sharedInstance] setMockResponseOn:YES];
-    
-    [[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"[{\"first_name\":\"Josh\",\"last_name\":\"Holtz\"},{\"first_name\":\"Joshua\",\"last_name\":\"Holtz\"},{\"first_name\":\"Jossshhhhhh\",\"last_name\":\"Holtz\"}]"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:@"/members" withMethod:kProtocolRouteGET];
-    
-    [[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"{\"first_name\":\"Josh\",\"last_name\":\"Holtz\"}"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:[NSRegularExpression regularExpressionWithPattern:@"/member/(\\d+)?" options:NSRegularExpressionCaseInsensitive error:nil] withMethod:kProtocolRouteGET];
-    
-    // Gets a JSON member object
-    [[ProtocolManager sharedInstance] doGet:@"/member/4" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
-        
-        if ([json isKindOfClass:[NSDictionary class]]) {
-            Member *member = [[Member alloc] initWithDictionary:json];
-            NSLog(@"Member - %@ %@", member.firstName, member.lastName);
-        }
-        
-    }];
-    
-    // Gets a JSON array of member objects
-    [[ProtocolManager sharedInstance] doGet:@"/members" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
-        
-        if ([json isKindOfClass:[NSArray class]]) {
-            NSArray *members = [Member createWithArray:json];
-            for (Member *member in members) {
-                NSLog(@"Member in members - %@ %@", member.firstName, member.lastName);
-            }
-        }
-        
-    }];
+//    [[ProtocolManager sharedInstance] setMockResponseOn:YES];
+//    
+//    [[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"[{\"first_name\":\"Josh\",\"last_name\":\"Holtz\"},{\"first_name\":\"Joshua\",\"last_name\":\"Holtz\"},{\"first_name\":\"Jossshhhhhh\",\"last_name\":\"Holtz\"}]"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:@"/members" withMethod:kProtocolRouteGET];
+//    
+//    [[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"{\"first_name\":\"Josh\",\"last_name\":\"Holtz\"}"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:[NSRegularExpression regularExpressionWithPattern:@"/member/(\\d+)?" options:NSRegularExpressionCaseInsensitive error:nil] withMethod:kProtocolRouteGET];
+//    
+//    // Gets a JSON member object
+//    [[ProtocolManager sharedInstance] doGet:@"/member/4" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+//        
+//        if ([json isKindOfClass:[NSDictionary class]]) {
+//            Member *member = [[Member alloc] initWithDictionary:json];
+//            NSLog(@"Member - %@ %@", member.firstName, member.lastName);
+//        }
+//        
+//    }];
+//    
+//    // Gets a JSON array of member objects
+//    [[ProtocolManager sharedInstance] doGet:@"/members" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+//        
+//        if ([json isKindOfClass:[NSArray class]]) {
+//            NSArray *members = [Member createWithArray:json];
+//            for (Member *member in members) {
+//                NSLog(@"Member in members - %@ %@", member.firstName, member.lastName);
+//            }
+//        }
+//        
+//    }];
     
 //    [[ProtocolManager sharedInstance] doGet:@"/member" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
 //        

@@ -10,14 +10,26 @@
 
 @implementation Member
 
+@synthesize memberId = _memberId;
 @synthesize firstName = _firstName;
 @synthesize lastName = _lastName;
 
 - (NSDictionary *)mapKeysToProperties {
     return [[NSDictionary alloc] initWithObjectsAndKeys:
+            @"memberId", @"id",
             @"firstName", @"first_name",
             @"lastName", @"last_name",
             nil ];
+}
+
+#pragma mark - Protocol Persist Delegate
+
+- (NSInteger)valueForPrimaryKey {
+    return _memberId;
+}
+
+- (NSArray *)propertiesToSave {
+    return [[NSArray alloc] initWithObjects:@"memberId", @"firstName", @"lastName", nil];
 }
 
 @end

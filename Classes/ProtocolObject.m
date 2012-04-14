@@ -14,31 +14,34 @@
     NSMutableArray *array = [[NSMutableArray alloc] init];
     for (NSDictionary *dict in jsonArray) {
         Class protocolObjectClass = [self class];
-        NSLog(@"This class? %@", protocolObjectClass);
         [array addObject:[[protocolObjectClass alloc] initWithDictionary:dict]];
     }
     
     return array;
 }
 
-- (id)initWithDictionary:(NSDictionary *)dict {
+- (id)initWithDictionary:(NSDictionary*)dict {
     self = [self init];
     if (self) {
         
-        // Loops through all keys to map to propertiess
-        NSDictionary *map = [self mapKeysToProperties];
-        for (NSString *key in [map allKeys]) {
-            
-            // Checks if the key to map is in the dictionary to map
-            if ([dict objectForKey:key] != nil && [dict objectForKey:key] != [NSNull null]) {
-
-                [self setValue:[dict objectForKey:key] forKey:[map objectForKey:key] ];
-                
-            }
-            
-        }
+        [self setWithDictionary:dict];
     }
     return self;
+}
+
+- (void) setWithDictionary:(NSDictionary*)dict {
+    // Loops through all keys to map to propertiess
+    NSDictionary *map = [self mapKeysToProperties];
+    for (NSString *key in [map allKeys]) {
+        
+        // Checks if the key to map is in the dictionary to map
+        if ([dict objectForKey:key] != nil && [dict objectForKey:key] != [NSNull null]) {
+            
+            [self setValue:[dict objectForKey:key] forKey:[map objectForKey:key] ];
+            
+        }
+        
+    }
 }
 
 - (NSDictionary *)mapKeysToProperties {
