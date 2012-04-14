@@ -23,7 +23,9 @@
 
 + (id)sharedInstance;
 
-- (NSArray*)get:(Class)class;
-- (void)save:(ProtocolObject<ProtocolPersistDelegate>*)protocolObject;
+- (NSArray*)getObjects:(Class)class;
+- (id)getObject:(Class)class withId:(NSInteger)objectId;
+- (void)saveObject:(ProtocolObject<ProtocolPersistDelegate>*)protocolObject;
+- (BOOL)deleteObject:(ProtocolObject<ProtocolPersistDelegate>*)protocolObject;
 
 @end

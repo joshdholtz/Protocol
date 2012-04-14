@@ -44,12 +44,14 @@ static ProtocolPersist *sharedInstance = nil;
 
 #pragma mark - Protocol Object Methods
 
-- (NSArray*)get:(Class)class {
+- (NSArray*)getObjects:(Class)class {
     
     NSString *tableName = [class description];
     if (![self doesTableExist:tableName]) {
         return nil;
     }
+    
+    NSMutableArray *objects = [[NSMutableArray alloc] init];
     
     NSString *query = [[NSString alloc] initWithFormat:@"SELECT ID, DEFINED_ID, JSON FROM %@;", tableName];
     
@@ -66,17 +68,55 @@ static ProtocolPersist *sharedInstance = nil;
         NSString *jsonField = [[NSString alloc] initWithUTF8String:
                                 (const char *) sqlite3_column_text(statement, 2)];
         
-        NSLog(@"%d %d %@", idField, definedIdField, jsonField);
-        
+        NSDictionary *jsonData = [NSJSONSerialization JSONObjectWithData:[jsonField dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableLeaves error:nil];
+        ProtocolObject *obj = [[class alloc] initWithDictionary:jsonData andPrimaryId:idField];
+
+        [objects addObject:obj];
     }
     sqlite3_finalize(statement);
     
     [self closeDatabase:database];
     
-    return nil;
+    return objects;
 }
 
-- (void)save:(ProtocolObject<ProtocolPersistDelegate>*)protocolObject {
+- (id)getObject:(Class)class withId:(NSInteger)objectId {
+    
+    ProtocolObject *obj = nil;
+    
+    NSString *tableName = [class description];
+    if (![self doesTableExist:tableName]) {
+        return nil;
+    }
+    
+    sqlite3 *database = [self openDatabase];
+    NSString *query = [[NSString alloc] initWithFormat:@"SELECT ID, DEFINED_ID, JSON FROM %@ WHERE ID = ?;", tableName];
+    
+    sqlite3_stmt *statement = [self prepareDatabaseQuery:database withSQL:query];
+    sqlite3_bind_int(statement, 1, objectId);
+    
+    while (sqlite3_step(statement) == SQLITE_ROW) {
+        NSLog(@"We found result");
+        
+        int idField = sqlite3_column_int(statement, 0);
+        
+        int definedIdField = sqlite3_column_int(statement, 1);
+        
+        NSString *jsonField = [[NSString alloc] initWithUTF8String:
+                               (const char *) sqlite3_column_text(statement, 2)];
+        
+        NSDictionary *jsonData = [NSJSONSerialization JSONObjectWithData:[jsonField dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableLeaves error:nil];
+        obj = [[class alloc] initWithDictionary:jsonData andPrimaryId:idField];
+
+    }
+    sqlite3_finalize(statement);
+    
+    [self closeDatabase:database];
+    
+    return obj;
+}
+
+- (void)saveObject:(ProtocolObject<ProtocolPersistDelegate>*)protocolObject {
     NSDictionary *dict = [protocolObject dictionaryWithValuesForKeys:[protocolObject propertiesToSave]];
     
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
@@ -92,27 +132,91 @@ static ProtocolPersist *sharedInstance = nil;
     NSLog(@"After checking table");
     
     sqlite3 *database = [self openDatabase];
+    
+    if ([protocolObject primaryId] == -1) {
+    
+        sqlite3_stmt *addStmt = nil;
+        if(addStmt == nil) {
+            const char *sql = [[[NSString alloc] initWithFormat:@"insert into %@(DEFINED_ID, JSON) Values(?, ?)", tableName] UTF8String];
+            if(sqlite3_prepare_v2(database, sql, -1, &addStmt, NULL) != SQLITE_OK)
+                NSAssert1(0, @"Error while creating add statement. '%s'", sqlite3_errmsg(database));
+        }
+        
+        sqlite3_bind_int(addStmt, 1, [protocolObject valueForPrimaryKey]);
+        sqlite3_bind_text(addStmt, 2, [jsonString UTF8String], -1, SQLITE_TRANSIENT);
+        
+        if(SQLITE_DONE != sqlite3_step(addStmt)) {
+            NSAssert1(0, @"Error while inserting data. '%s'", sqlite3_errmsg(database));
+        } else {
+            NSLog(@"We inserted a record");
+            [protocolObject setPrimaryId: sqlite3_last_insert_rowid(database)];
+        }
+        
+        //Reset the add statement.
+        sqlite3_reset(addStmt);
+        
+    } else {
+     
+        sqlite3_stmt *addStmt = nil;
+        if(addStmt == nil) {
+            const char *sql = [[[NSString alloc] initWithFormat:@"update %@ set DEFINED_ID = ?, JSON = ? WHERE ID = ?;", tableName] UTF8String];
+            if(sqlite3_prepare_v2(database, sql, -1, &addStmt, NULL) != SQLITE_OK)
+                NSAssert1(0, @"Error while creating add statement. '%s'", sqlite3_errmsg(database));
+        }
+        
+        sqlite3_bind_int(addStmt, 1, [protocolObject valueForPrimaryKey]);
+        sqlite3_bind_text(addStmt, 2, [jsonString UTF8String], -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int(addStmt, 3, [protocolObject primaryId]);
+        
+        if(SQLITE_DONE != sqlite3_step(addStmt)) {
+            NSAssert1(0, @"Error while updating data. '%s'", sqlite3_errmsg(database));
+        } else {
+            NSLog(@"We updated a record");
+            //        coffeeID = sqlite3_last_insert_rowid(datbase);
+        }
+        
+        //Reset the add statement.
+        sqlite3_reset(addStmt);
+        
+    }
+    
+    [self closeDatabase:database];
+    
+}
+
+- (BOOL)deleteObject:(ProtocolObject<ProtocolPersistDelegate>*)protocolObject {
+    
+    BOOL deleted = NO;
+    
+    NSString *tableName = [[protocolObject class] description];
+    if (![self doesTableExist:tableName]) {
+        return deleted;
+    }
+    
+    sqlite3 *database = [self openDatabase];
     sqlite3_stmt *addStmt = nil;
     if(addStmt == nil) {
-        const char *sql = [[[NSString alloc] initWithFormat:@"insert into %@(DEFINED_ID, JSON) Values(?, ?)", tableName] UTF8String];
+        const char *sql = [[[NSString alloc] initWithFormat:@"delete from %@ where ID = ?", tableName] UTF8String];
         if(sqlite3_prepare_v2(database, sql, -1, &addStmt, NULL) != SQLITE_OK)
             NSAssert1(0, @"Error while creating add statement. '%s'", sqlite3_errmsg(database));
     }
     
-    sqlite3_bind_int(addStmt, 1, [protocolObject valueForPrimaryKey]);
-    sqlite3_bind_text(addStmt, 2, [jsonString UTF8String], -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(addStmt, 1, [protocolObject primaryId]);
     
     if(SQLITE_DONE != sqlite3_step(addStmt)) {
         NSAssert1(0, @"Error while inserting data. '%s'", sqlite3_errmsg(database));
     } else {
-        NSLog(@"We inserted a record");
-//        coffeeID = sqlite3_last_insert_rowid(datbase);
+        NSLog(@"We delete a record");
+        //        coffeeID = sqlite3_last_insert_rowid(datbase);
+        deleted = YES;
     }
     
     //Reset the add statement.
     sqlite3_reset(addStmt);
     
     [self closeDatabase:database];
+    
+    return deleted;
     
 }
 

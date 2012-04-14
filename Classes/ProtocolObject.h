@@ -10,8 +10,11 @@
 
 @interface ProtocolObject : NSObject
 
+@property (nonatomic, assign) NSInteger primaryId;
+
 + (NSArray*)createWithArray:(NSArray*)jsonArray;
 
+- (id)initWithDictionary:(NSDictionary*)dict andPrimaryId:(NSInteger)primaryId;
 - (id) initWithDictionary:(NSDictionary*)dict;
 - (void) setWithDictionary:(NSDictionary*)dict;
 

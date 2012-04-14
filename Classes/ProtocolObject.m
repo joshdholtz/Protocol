@@ -10,6 +10,8 @@
 
 @implementation ProtocolObject
 
+@synthesize primaryId = _primaryId;
+
 + (NSArray*)createWithArray:(NSArray*)jsonArray {
     NSMutableArray *array = [[NSMutableArray alloc] init];
     for (NSDictionary *dict in jsonArray) {
@@ -20,11 +22,21 @@
     return array;
 }
 
+- (id)initWithDictionary:(NSDictionary*)dict andPrimaryId:(NSInteger)primaryId {
+    self = [self init];
+    if (self) {
+        [self setValuesForKeysWithDictionary:dict];
+        _primaryId = primaryId;
+    }
+    return self;
+}
+
+
 - (id)initWithDictionary:(NSDictionary*)dict {
     self = [self init];
     if (self) {
-        
         [self setWithDictionary:dict];
+        _primaryId = -1;
     }
     return self;
 }

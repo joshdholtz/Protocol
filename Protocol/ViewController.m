@@ -47,9 +47,16 @@
             Member *member = [[Member alloc] initWithDictionary:json];
             NSLog(@"Member - %d %@ %@", member.memberId, member.firstName, member.lastName);
             
-            [[ProtocolPersist sharedInstance] save:member];
+//            [[ProtocolPersist sharedInstance] save:member];
             
-            [[ProtocolPersist sharedInstance] get:[Member class]];
+            Member *savedMember = [[ProtocolPersist sharedInstance] getObject:[Member class] withId:member.memberId];
+            
+            NSLog(@"Saved member before update - %d %@ %@", savedMember.memberId, savedMember.firstName, savedMember.lastName);
+            
+//            [savedMember setFirstName:@"JoshUUUAAAA"];
+//            [[ProtocolPersist sharedInstance] saveObject:savedMember];
+//            
+//            NSLog(@"Saved member after update - %d %@ %@", savedMember.memberId, savedMember.firstName, savedMember.lastName);
         }
         
     }];
@@ -59,7 +66,15 @@
 //    [member setLastName:@"TheCat"];
 //    [[ProtocolPersist sharedInstance] save:member];
 //    
-//    [[ProtocolPersist sharedInstance] get:[Member class]];
+//    NSArray *members = [[ProtocolPersist sharedInstance] get:[Member class]];
+//    for (Member *member in members) {
+//        NSLog(@"Member - %@", member.firstName);
+//        if ([[ProtocolPersist sharedInstance] deleteObject:member]) {
+//            NSLog(@"We deleted this member");
+//        } else {
+//            NSLog(@"We did not delete this member");
+//        }
+//    }
     
 //    
 //    // Gets a JSON array of member objects
