@@ -33,6 +33,35 @@
 //        [[ProtocolManager sharedInstance] multipartRequestWithURL:@"/fileupload.php" andDataArray:[[NSArray alloc] initWithObjects:data, data, nil]];
 //    }
     
+//    [[ProtocolManager sharedInstance] doGet:@"http://www.housecatscentral.com/cat1.jpg" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+//       
+//        if (status == 200) {
+//            NSLog(@"Got it - %d", [data length]);
+//            [[ProtocolManager sharedInstance] addCachedResponse:@"http://www.housecatscentral.com/cat1.jpg" withData:data];
+//            
+//            [[ProtocolManager sharedInstance] doGet:@"http://www.housecatscentral.com/cat1.jpg" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+//                
+//                if (status == 200) {
+//                    NSLog(@"Got it again - %d", [data length]);
+//                    [[ProtocolManager sharedInstance] removeCachedResponse:@"http://www.housecatscentral.com/cat1.jpg"];
+//                    
+//                    [[ProtocolManager sharedInstance] doGet:@"http://www.housecatscentral.com/cat1.jpg" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+//                        
+//                        if (status == 200) {
+//                            NSLog(@"Got it again again - %d", [data length]);
+//                            
+//                            
+//                        }
+//                        
+//                    }];
+//                    
+//                }
+//                
+//            }];
+//            
+//        }
+//        
+//    }];
     
 //    [[ProtocolManager sharedInstance] setMockResponseOn:YES];
 //    [[ProtocolManager sharedInstance] registerMockResponse:[[[NSString alloc] initWithString:@"Josh Holtz, Bandit"] dataUsingEncoding:NSUTF8StringEncoding] withRoute:@"/member" withMethod:kProtocolRouteGET];

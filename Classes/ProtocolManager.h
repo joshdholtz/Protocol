@@ -28,6 +28,10 @@
 - (void) registerMockResponse:(NSData*)response withRoute:(id)route withMethod:(NSUInteger)method;
 - (void) unregisterMockResponseForRoute:(id)route withMethod:(NSUInteger)method;
 
+- (void) addCachedResponse:(NSString*)route withData:(NSData*)data;
+- (void) removeCachedResponse:(NSString*)route;
+- (void) removeAllCachedResponses;
+
 - (void) doMultipartPost:(NSString*)route andData:(NSData*)data withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 - (void) doMultipartPost:(NSString*)route andDataArray:(NSArray*) dataArray withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 - (void) doMultipartPost:(NSString*)route andDataDictionary:(NSDictionary*) dataDicts withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;

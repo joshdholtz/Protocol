@@ -17,6 +17,8 @@
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesPUT;
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesDELETE;
 
+@property (nonatomic, strong) NSMutableDictionary *cachedResponsesGET;
+
 - (NSData *)findMockResponse:(NSString *)route withMockResponse:(NSDictionary*)actionMockResponses;
 
 @end
@@ -31,6 +33,8 @@
 @synthesize mockResponsesPOST = _mockResponsesPOST;
 @synthesize mockResponsesPUT = _mockResponsesPUT;
 @synthesize mockResponsesDELETE = _mockResponsesDELETE;
+
+@synthesize cachedResponsesGET = _cachedResponsesGET;
 
 static ProtocolManager *sharedInstance = nil;
 
@@ -55,6 +59,8 @@ static ProtocolManager *sharedInstance = nil;
         _mockResponsesPOST = [[NSMutableDictionary alloc] init];
         _mockResponsesPUT = [[NSMutableDictionary alloc] init];
         _mockResponsesDELETE = [[NSMutableDictionary alloc] init];
+        
+        _cachedResponsesGET = [[NSMutableDictionary alloc] init];
     }
     
     return self;
@@ -116,6 +122,21 @@ static ProtocolManager *sharedInstance = nil;
             break;
     }
 
+}
+
+#pragma mark -
+#pragma mark Cached Responses
+
+- (void) addCachedResponse:(NSString*)route withData:(NSData*)data {
+    [_cachedResponsesGET setObject:data forKey:route];
+}
+
+- (void) removeCachedResponse:(NSString*)route {
+    [_cachedResponsesGET removeObjectForKey:route];
+}
+
+- (void) removeAllCachedResponses {
+    [_cachedResponsesGET removeAllObjects];
 }
 
 #pragma mark - 
@@ -284,24 +305,34 @@ static ProtocolManager *sharedInstance = nil;
         });
         
     } else {
-    
-        // Builds request
-        NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        [request setAllHTTPHeaderFields:_httpHeaders];
-        [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
-        [request setHTTPMethod:@"GET"];
         
-        NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-        
-        // Captures response
-        [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-        
+        if ([_cachedResponsesGET objectForKey:route]) {
+            NSLog(@"Using cached copy");
             dispatch_async(dispatch_get_main_queue(), ^{
-                int status = [((NSHTTPURLResponse*) response) statusCode];
-                block(response, status, data);
+                block(nil, 200, [_cachedResponsesGET objectForKey:route]);
             });
             
-        }];
+        } else {
+    
+            // Builds request
+            NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+            [request setAllHTTPHeaderFields:_httpHeaders];
+            [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
+            [request setHTTPMethod:@"GET"];
+            
+            NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+            
+            // Captures response
+            [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+            
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    int status = [((NSHTTPURLResponse*) response) statusCode];
+                    block(response, status, data);
+                });
+                
+            }];
+            
+        }
         
     }
     
