@@ -23,6 +23,8 @@
 		03B918CC1531185600ADFAEA /* ProtocolManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 03B918C91531185600ADFAEA /* ProtocolManager.m */; };
 		03B918CD1531185600ADFAEA /* ProtocolObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 03B918CB1531185600ADFAEA /* ProtocolObject.m */; };
 		03B918D0153118AE00ADFAEA /* Member.m in Sources */ = {isa = PBXBuildFile; fileRef = 03B918CF153118AE00ADFAEA /* Member.m */; };
+		03DFE5F7153DB03D00BABD48 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03DFE5F6153DB03D00BABD48 /* SystemConfiguration.framework */; };
+		03DFE5FE153DB83A00BABD48 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 03DFE5FD153DB83A00BABD48 /* Reachability.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +53,9 @@
 		03B918CB1531185600ADFAEA /* ProtocolObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolObject.m; sourceTree = "<group>"; };
 		03B918CE153118AE00ADFAEA /* Member.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Member.h; sourceTree = "<group>"; };
 		03B918CF153118AE00ADFAEA /* Member.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Member.m; sourceTree = "<group>"; };
+		03DFE5F6153DB03D00BABD48 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		03DFE5FC153DB83A00BABD48 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		03DFE5FD153DB83A00BABD48 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03DFE5F7153DB03D00BABD48 /* SystemConfiguration.framework in Frameworks */,
 				032F6488153A1606004E22FA /* libsqlite3.dylib in Frameworks */,
 				03B918A7153117F800ADFAEA /* UIKit.framework in Frameworks */,
 				03B918A9153117F800ADFAEA /* Foundation.framework in Frameworks */,
@@ -71,6 +77,7 @@
 		03B91897153117F800ADFAEA = {
 			isa = PBXGroup;
 			children = (
+				03DFE5FA153DB83A00BABD48 /* Lib */,
 				03B918C71531185600ADFAEA /* Classes */,
 				03B918AC153117F800ADFAEA /* Protocol */,
 				03B918A5153117F800ADFAEA /* Frameworks */,
@@ -89,6 +96,7 @@
 		03B918A5153117F800ADFAEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				03DFE5F6153DB03D00BABD48 /* SystemConfiguration.framework */,
 				032F6487153A1606004E22FA /* libsqlite3.dylib */,
 				03B918A6153117F800ADFAEA /* UIKit.framework */,
 				03B918A8153117F800ADFAEA /* Foundation.framework */,
@@ -137,6 +145,23 @@
 				032F6484153A1377004E22FA /* ProtocolPersist.m */,
 			);
 			path = Classes;
+			sourceTree = "<group>";
+		};
+		03DFE5FA153DB83A00BABD48 /* Lib */ = {
+			isa = PBXGroup;
+			children = (
+				03DFE5FB153DB83A00BABD48 /* Reachability */,
+			);
+			path = Lib;
+			sourceTree = "<group>";
+		};
+		03DFE5FB153DB83A00BABD48 /* Reachability */ = {
+			isa = PBXGroup;
+			children = (
+				03DFE5FC153DB83A00BABD48 /* Reachability.h */,
+				03DFE5FD153DB83A00BABD48 /* Reachability.m */,
+			);
+			path = Reachability;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -211,6 +236,7 @@
 				03B918CD1531185600ADFAEA /* ProtocolObject.m in Sources */,
 				03B918D0153118AE00ADFAEA /* Member.m in Sources */,
 				032F6485153A1377004E22FA /* ProtocolPersist.m in Sources */,
+				03DFE5FE153DB83A00BABD48 /* Reachability.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

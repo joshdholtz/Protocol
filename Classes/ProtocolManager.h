@@ -22,6 +22,8 @@
 
 @property (nonatomic, assign) BOOL networkActivityIndicatorVisible;
 
+@property (nonatomic, assign) BOOL reachabilityActive;
+
 + (id)sharedInstance;
 
 - (void) addHttpHeader:(NSString*)value forKey:(NSString*)key;

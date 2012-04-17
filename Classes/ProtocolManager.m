@@ -41,6 +41,8 @@
 
 @synthesize cachedResponsesGET = _cachedResponsesGET;
 
+@synthesize reachabilityActive = _reachabilityActive;
+
 static ProtocolManager *sharedInstance = nil;
 
 #pragma mark - Public Singleton

@@ -12,6 +12,8 @@
 #import "ProtocolPersist.h"
 #import "Member.h"
 
+#import "Reachability.h"
+
 @interface ViewController ()
 
 @end
@@ -23,6 +25,22 @@
     [super viewDidLoad];
     
     [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
+    
+    Reachability* reach = [Reachability reachabilityWithHostname:@"www.kingofti.me"];
+    // set the blocks 
+    reach.reachableBlock = ^(Reachability*reach)
+    {
+        NSLog(@"We are reachable");
+        [[ProtocolManager sharedInstance] setReachabilityActive:YES];
+    };
+    
+    reach.unreachableBlock = ^(Reachability*reach)
+    {
+        NSLog(@"We are not reachable");
+        [[ProtocolManager sharedInstance] setReachabilityActive:NO];
+    };
+    
+    [reach startNotifier];
     
 //    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
 //        
@@ -41,25 +59,25 @@
 //    }];
 //    
     // Gets a JSON member object
-    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
-        
-        if ([json isKindOfClass:[NSDictionary class]]) {
-            Member *member = [[Member alloc] initWithDictionary:json];
-            NSLog(@"Member - %d %@ %@", member.memberId, member.firstName, member.lastName);
-            
-//            [[ProtocolPersist sharedInstance] save:member];
-            
-            Member *savedMember = [[ProtocolPersist sharedInstance] getObject:[Member class] withId:member.memberId];
-            
-            NSLog(@"Saved member before update - %d %@ %@", savedMember.memberId, savedMember.firstName, savedMember.lastName);
-            
+//    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id json) {
+//        
+//        if ([json isKindOfClass:[NSDictionary class]]) {
+//            Member *member = [[Member alloc] initWithDictionary:json];
+//            NSLog(@"Member - %d %@ %@", member.memberId, member.firstName, member.lastName);
+//            
+////            [[ProtocolPersist sharedInstance] save:member];
+//            
+//            Member *savedMember = [[ProtocolPersist sharedInstance] getObject:[Member class] withId:member.memberId];
+//            
+//            NSLog(@"Saved member before update - %d %@ %@", savedMember.memberId, savedMember.firstName, savedMember.lastName);
+//            
 //            [savedMember setFirstName:@"JoshUUUAAAA"];
 //            [[ProtocolPersist sharedInstance] saveObject:savedMember];
 //            
 //            NSLog(@"Saved member after update - %d %@ %@", savedMember.memberId, savedMember.firstName, savedMember.lastName);
-        }
-        
-    }];
+//        }
+//        
+//    }];
     
 //    Member *member = [[Member alloc] init];
 //    [member setFirstName:@"Bandit"];
