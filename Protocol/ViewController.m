@@ -24,23 +24,33 @@
 {
     [super viewDidLoad];
     
-    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
+//    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
+    [[ProtocolManager sharedInstance] setBaseURL:@"http://kingofti.me"];
     
-    Reachability* reach = [Reachability reachabilityWithHostname:@"www.kingofti.me"];
-    // set the blocks 
-    reach.reachableBlock = ^(Reachability*reach)
-    {
-        NSLog(@"We are reachable");
-        [[ProtocolManager sharedInstance] setReachabilityActive:YES];
-    };
+//    Reachability* reach = [Reachability reachabilityWithHostname:@"www.kingofti.me"];
+//    // set the blocks 
+//    reach.reachableBlock = ^(Reachability*reach)
+//    {
+//        NSLog(@"We are reachable");
+//        [[ProtocolManager sharedInstance] setReachabilityActive:YES];
+//    };
+//    
+//    reach.unreachableBlock = ^(Reachability*reach)
+//    {
+//        NSLog(@"We are not reachable");
+//        [[ProtocolManager sharedInstance] setReachabilityActive:NO];
+//    };
+//    
+//    [reach startNotifier];
     
-    reach.unreachableBlock = ^(Reachability*reach)
-    {
-        NSLog(@"We are not reachable");
-        [[ProtocolManager sharedInstance] setReachabilityActive:NO];
-    };
+    [[ProtocolManager sharedInstance] observeResponseStatus:404 withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+        NSLog(@"We got this observation thing going on here");
+    }];
     
-    [reach startNotifier];
+    [[ProtocolManager sharedInstance] doGet:@"/" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+        NSLog(@"we are in the actual response handler");
+    }];
+    
     
 //    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
 //        

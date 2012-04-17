@@ -36,6 +36,9 @@
 - (void) removeCachedResponse:(NSString*)route;
 - (void) removeAllCachedResponses;
 
+- (void) observeResponseStatus:(NSInteger)status withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
+- (void) removeObserveResponseStatus:(NSInteger)status;
+
 - (void) doMultipartPost:(NSString*)route andData:(NSData*)data withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 - (void) doMultipartPost:(NSString*)route andDataArray:(NSArray*) dataArray withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 - (void) doMultipartPost:(NSString*)route andDataDictionary:(NSDictionary*) dataDicts withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;

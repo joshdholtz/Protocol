@@ -21,6 +21,8 @@
 
 @property (nonatomic, strong) NSMutableDictionary *cachedResponsesGET;
 
+@property (nonatomic, strong) NSMutableDictionary *observedStatuses;
+
 - (NSData *)findMockResponse:(NSString *)route withMockResponse:(NSDictionary*)actionMockResponses;
 
 @end
@@ -40,6 +42,8 @@
 @synthesize mockResponsesDELETE = _mockResponsesDELETE;
 
 @synthesize cachedResponsesGET = _cachedResponsesGET;
+
+@synthesize observedStatuses = _observedStatuses;
 
 @synthesize reachabilityActive = _reachabilityActive;
 
@@ -72,6 +76,8 @@ static ProtocolManager *sharedInstance = nil;
         _mockResponsesDELETE = [[NSMutableDictionary alloc] init];
         
         _cachedResponsesGET = [[NSMutableDictionary alloc] init];
+        
+        _observedStatuses = [[NSMutableDictionary alloc] init];
     }
     
     return self;
@@ -148,6 +154,17 @@ static ProtocolManager *sharedInstance = nil;
 
 - (void) removeAllCachedResponses {
     [_cachedResponsesGET removeAllObjects];
+}
+
+#pragma mark -
+#pragma mark Observe Status
+
+- (void) observeResponseStatus:(NSInteger)status withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [_observedStatuses setObject:block forKey:[[NSNumber alloc] initWithInt:status]];
+}
+
+- (void) removeObserveResponseStatus:(NSInteger)status {
+    [_observedStatuses removeObjectForKey:[[NSNumber alloc] initWithInt:status]];
 }
 
 #pragma mark - 
@@ -426,10 +443,25 @@ static ProtocolManager *sharedInstance = nil;
         
         [self releaseNetworkActivityIndicator];
         
+        
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             int status = [((NSHTTPURLResponse*) response) statusCode];
-            block(response, status, data);
+            
+            NSLog(@"What is our status - %d", status);
+            
+            if ([_observedStatuses objectForKey:[[NSNumber alloc] initWithInt:status]]) {
+                NSLog(@"Observing for status - %d", status);
+                
+                void(^statusBlock)(NSURLResponse *response, NSUInteger status, NSData* data);
+                statusBlock = [_observedStatuses objectForKey:[[NSNumber alloc] initWithInt:status]];
+                statusBlock(response, status, data);
+            } else {
+                block(response, status, data);
+            }
+            
         });
+        
         
     }];
 }
