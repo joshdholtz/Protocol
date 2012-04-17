@@ -18,6 +18,8 @@
 @property (nonatomic, strong) NSString *baseURL;
 @property (nonatomic, strong) NSMutableDictionary *httpHeaders;
 
+@property (nonatomic, assign) BOOL debug;
+
 @property (nonatomic, assign) BOOL mockResponseOn;
 
 @property (nonatomic, assign) BOOL networkActivityIndicatorVisible;

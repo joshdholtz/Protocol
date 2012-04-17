@@ -31,6 +31,7 @@
 
 @synthesize baseURL = _baseURL;
 @synthesize httpHeaders = _httpHeaders;
+@synthesize debug = _debug;
 
 @synthesize networkActivityIndicatorVisible = _networkActivityIndicatorVisible;
 @synthesize numberOfActiveRequsts = _numberOfRequsts;
@@ -265,7 +266,10 @@ static ProtocolManager *sharedInstance = nil;
     // Calls doGet, parses JSON, and calls JSON block
     [self doGet:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
         
         block(response, status, jsonData);
         
@@ -278,7 +282,10 @@ static ProtocolManager *sharedInstance = nil;
     // Calls doPost, parses JSON, and calls JSON block
     [self doPost:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
         
         block(response, status, jsonData);
         
@@ -291,7 +298,10 @@ static ProtocolManager *sharedInstance = nil;
     // Calls doPost, parses JSON, and calls JSON block
     [self doPut:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
         
         block(response, status, jsonData);
         
@@ -304,7 +314,10 @@ static ProtocolManager *sharedInstance = nil;
     // Calls doDelete, parses JSON, and calls JSON block
     [self doDelete:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
         
         block(response, status, jsonData);
         
@@ -443,10 +456,12 @@ static ProtocolManager *sharedInstance = nil;
         
         [self releaseNetworkActivityIndicator];
         
-        
+        int status = [((NSHTTPURLResponse*) response) statusCode];
+        if (_debug) {
+            NSLog(@"%d - %@", status, [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        }
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            int status = [((NSHTTPURLResponse*) response) statusCode];
             
             NSLog(@"What is our status - %d", status);
             
