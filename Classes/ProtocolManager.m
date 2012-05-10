@@ -261,42 +261,30 @@ static ProtocolManager *sharedInstance = nil;
 
 #pragma mark - 
 #pragma mark Send Requests For JSON
+
 - (void) doGet:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
-    
-    // Calls doGet, parses JSON, and calls JSON block
-    [self doGet:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
-        
-        id jsonData = nil;
-        if (data != nil) {
-            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        }
-        
-        block(response, status, jsonData);
-        
-    }];
-    
+    [self doGet:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
 }
 
 - (void) doPost:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
-    
-    // Calls doPost, parses JSON, and calls JSON block
-    [self doPost:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
-        
-        id jsonData = nil;
-        if (data != nil) {
-            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-        }
-        
-        block(response, status, jsonData);
-        
-    }];
-    
+    [self doPost:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
 }
 
 - (void) doPut:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    [self doPut:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
+}
+
+- (void) doDelete:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    [self doDelete:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
+}
+
+
+#pragma mark - 
+#pragma mark Send Requests For JSON - headers, params, content type
+- (void) doGet:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
-    // Calls doPost, parses JSON, and calls JSON block
-    [self doPut:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+    // Calls doGet, parses JSON, and calls JSON block
+    [self doGet:route headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
         id jsonData = nil;
         if (data != nil) {
@@ -309,10 +297,42 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doDelete:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+- (void) doPost:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    
+    // Calls doPost, parses JSON, and calls JSON block
+    [self doPost:route  headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+        
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
+        
+        block(response, status, jsonData);
+        
+    }];
+    
+}
+
+- (void) doPut:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    
+    // Calls doPost, parses JSON, and calls JSON block
+    [self doPut:route  headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+        
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
+        
+        block(response, status, jsonData);
+        
+    }];
+    
+}
+
+- (void) doDelete:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
     // Calls doDelete, parses JSON, and calls JSON block
-    [self doDelete:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+    [self doDelete:route  headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
         id jsonData = nil;
         if (data != nil) {
