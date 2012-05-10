@@ -21,6 +21,8 @@
 
 @property (nonatomic, strong) NSMutableDictionary *cachedResponsesGET;
 
+@property (nonatomic, strong) NSMutableDictionary *observedStatuses;
+
 - (NSData *)findMockResponse:(NSString *)route withMockResponse:(NSDictionary*)actionMockResponses;
 
 @end
@@ -29,6 +31,7 @@
 
 @synthesize baseURL = _baseURL;
 @synthesize httpHeaders = _httpHeaders;
+@synthesize debug = _debug;
 
 @synthesize networkActivityIndicatorVisible = _networkActivityIndicatorVisible;
 @synthesize numberOfActiveRequsts = _numberOfRequsts;
@@ -40,6 +43,10 @@
 @synthesize mockResponsesDELETE = _mockResponsesDELETE;
 
 @synthesize cachedResponsesGET = _cachedResponsesGET;
+
+@synthesize observedStatuses = _observedStatuses;
+
+@synthesize reachabilityActive = _reachabilityActive;
 
 static ProtocolManager *sharedInstance = nil;
 
@@ -70,6 +77,8 @@ static ProtocolManager *sharedInstance = nil;
         _mockResponsesDELETE = [[NSMutableDictionary alloc] init];
         
         _cachedResponsesGET = [[NSMutableDictionary alloc] init];
+        
+        _observedStatuses = [[NSMutableDictionary alloc] init];
     }
     
     return self;
@@ -146,6 +155,17 @@ static ProtocolManager *sharedInstance = nil;
 
 - (void) removeAllCachedResponses {
     [_cachedResponsesGET removeAllObjects];
+}
+
+#pragma mark -
+#pragma mark Observe Status
+
+- (void) observeResponseStatus:(NSInteger)status withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [_observedStatuses setObject:block forKey:[[NSNumber alloc] initWithInt:status]];
+}
+
+- (void) removeObserveResponseStatus:(NSInteger)status {
+    [_observedStatuses removeObjectForKey:[[NSNumber alloc] initWithInt:status]];
 }
 
 #pragma mark - 
@@ -241,38 +261,35 @@ static ProtocolManager *sharedInstance = nil;
 
 #pragma mark - 
 #pragma mark Send Requests For JSON
+
 - (void) doGet:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
-    
-    // Calls doGet, parses JSON, and calls JSON block
-    [self doGet:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
-        
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
-        
-        block(response, status, jsonData);
-        
-    }];
-    
+    [self doGet:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
 }
 
 - (void) doPost:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
-    
-    // Calls doPost, parses JSON, and calls JSON block
-    [self doPost:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
-        
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
-        
-        block(response, status, jsonData);
-        
-    }];
-    
+    [self doPost:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
 }
 
 - (void) doPut:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    [self doPut:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
+}
+
+- (void) doDelete:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    [self doDelete:route headers:nil params:params contentType:kProtocolContentTypeFormData withJSONBlock:block];
+}
+
+
+#pragma mark - 
+#pragma mark Send Requests For JSON - headers, params, content type
+- (void) doGet:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
-    // Calls doPost, parses JSON, and calls JSON block
-    [self doPut:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+    // Calls doGet, parses JSON, and calls JSON block
+    [self doGet:route headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
         
         block(response, status, jsonData);
         
@@ -280,12 +297,47 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doDelete:(NSString*)route params:(NSDictionary*)params withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+- (void) doPost:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    
+    // Calls doPost, parses JSON, and calls JSON block
+    [self doPost:route  headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+        
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
+        
+        block(response, status, jsonData);
+        
+    }];
+    
+}
+
+- (void) doPut:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    
+    // Calls doPost, parses JSON, and calls JSON block
+    [self doPut:route  headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+        
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
+        
+        block(response, status, jsonData);
+        
+    }];
+    
+}
+
+- (void) doDelete:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
     
     // Calls doDelete, parses JSON, and calls JSON block
-    [self doDelete:route params:params withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
+    [self doDelete:route  headers:headers params:params contentType:contentType withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data){
         
-        id jsonData = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:nil];
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
         
         block(response, status, jsonData);
         
@@ -296,7 +348,29 @@ static ProtocolManager *sharedInstance = nil;
 #pragma mark - 
 
 #pragma mark Send Requests
+
 - (void) doGet:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doGet:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+- (void) doPost:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doPost:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+- (void) doPut:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doPut:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+- (void) doDelete:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doDelete:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+
+#pragma mark - 
+
+#pragma mark Send Requests - headers, params, content type
+
+- (void) doGet:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -330,7 +404,7 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doPost:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) doPost:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -340,18 +414,31 @@ static ProtocolManager *sharedInstance = nil;
         });
         
     } else {
+        
+        // Organizes headers
+        NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
+        [allHeaders setDictionary:_httpHeaders];
+        [allHeaders setDictionary:headers];
     
-        NSString *queryStr = [self dictToQueryString:params];
-        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [queryStr length]];
+        // Creates body
+        NSData *body = nil;
+        if ([kProtocolContentTypeFormData isEqualToString:contentType]) {
+            body = [[self dictToQueryString:params] dataUsingEncoding:NSUTF8StringEncoding];
+        } else {
+            body = [NSJSONSerialization dataWithJSONObject:params options:0 error:nil];
+        }
+        
+        // Gets body length
+        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [body length]];
         
         // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        [request setAllHTTPHeaderFields:_httpHeaders];
+        [request setAllHTTPHeaderFields:allHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
         [request setHTTPMethod:@"POST"];
-        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField: @"Content-Type"];
+        [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
         [request addValue:contentLengthStr forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:[queryStr dataUsingEncoding:NSUTF8StringEncoding]];
+        [request setHTTPBody:body];
         
         // Sends request asynchronous
         [self sendAsynchronousRequest:request withBlock:block];
@@ -359,7 +446,7 @@ static ProtocolManager *sharedInstance = nil;
     }
 }
 
-- (void) doPut:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) doPut:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -369,18 +456,31 @@ static ProtocolManager *sharedInstance = nil;
         });
         
     } else {
-    
-        NSString *queryStr = [self dictToQueryString:params];
-        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [queryStr length]];
+        
+        // Organizes headers
+        NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
+        [allHeaders setDictionary:_httpHeaders];
+        [allHeaders setDictionary:headers];
+        
+        // Creates body
+        NSData *body = nil;
+        if ([kProtocolContentTypeFormData isEqualToString:contentType]) {
+            body = [[self dictToQueryString:params] dataUsingEncoding:NSUTF8StringEncoding];
+        } else {
+            body = [NSJSONSerialization dataWithJSONObject:params options:0 error:nil];
+        }
+        
+        // Gets body length
+        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [body length]];
         
         // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        [request setAllHTTPHeaderFields:_httpHeaders];
+        [request setAllHTTPHeaderFields:allHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
         [request setHTTPMethod:@"PUT"];
-        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField: @"Content-Type"];
+        [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
         [request addValue:contentLengthStr forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:[queryStr dataUsingEncoding:NSUTF8StringEncoding]];
+        [request setHTTPBody:body];
         
         // Sends request asynchronous
         [self sendAsynchronousRequest:request withBlock:block];
@@ -389,7 +489,7 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doDelete:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) doDelete:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentTypes withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -424,10 +524,27 @@ static ProtocolManager *sharedInstance = nil;
         
         [self releaseNetworkActivityIndicator];
         
+        int status = [((NSHTTPURLResponse*) response) statusCode];
+        if (_debug) {
+            NSLog(@"%d - %@", status, [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        }
+        
         dispatch_async(dispatch_get_main_queue(), ^{
-            int status = [((NSHTTPURLResponse*) response) statusCode];
-            block(response, status, data);
+            
+            NSLog(@"What is our status - %d", status);
+            
+            if ([_observedStatuses objectForKey:[[NSNumber alloc] initWithInt:status]]) {
+                NSLog(@"Observing for status - %d", status);
+                
+                void(^statusBlock)(NSURLResponse *response, NSUInteger status, NSData* data);
+                statusBlock = [_observedStatuses objectForKey:[[NSNumber alloc] initWithInt:status]];
+                statusBlock(response, status, data);
+            } else {
+                block(response, status, data);
+            }
+            
         });
+        
         
     }];
 }
