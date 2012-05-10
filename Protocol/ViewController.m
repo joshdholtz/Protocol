@@ -25,7 +25,17 @@
     [super viewDidLoad];
     
 //    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
-    [[ProtocolManager sharedInstance] setBaseURL:@"http://kingofti.me"];
+//    [[ProtocolManager sharedInstance] setBaseURL:@"http://kingofti.me"];
+    
+    [[ProtocolManager sharedInstance] setBaseURL:@"http://ec2-50-19-13-228.compute-1.amazonaws.com:9090/"];
+    
+    NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:@"MGD",@"name",@"Another beer",@"description", nil];
+    
+    [[ProtocolManager sharedInstance] doPost:@"/drink" headers:nil params:params contentType:kProtocolContentTypeJSON withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+      
+        NSLog(@"Response - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+        
+    }];
     
 //    Reachability* reach = [Reachability reachabilityWithHostname:@"www.kingofti.me"];
 //    // set the blocks 
@@ -44,13 +54,13 @@
 //    [reach startNotifier];
     
     
-    [[ProtocolManager sharedInstance] observeResponseStatus:404 withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
-        NSLog(@"We got this observation thing going on here");
-    }];
-    
-    [[ProtocolManager sharedInstance] doGet:@"/" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
-        NSLog(@"we are in the actual response handler");
-    }];
+//    [[ProtocolManager sharedInstance] observeResponseStatus:404 withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+//        NSLog(@"We got this observation thing going on here");
+//    }];
+//    
+//    [[ProtocolManager sharedInstance] doGet:@"/" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+//        NSLog(@"we are in the actual response handler");
+//    }];
     
     
 //    [[ProtocolManager sharedInstance] doGet:@"/protocol.php?example=member_1" params:nil withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
@@ -118,16 +128,16 @@
 //        
 //    }];
     
-//    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
+//    [[ProtocolManager sharedInstance] setBaseURL:@"http://169.254.3.254"];
 //    
 //    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"me_coding" ofType:@"jpg"];  
 //    NSData *data = [NSData dataWithContentsOfFile:filePath];
 //    if (data) {
 //        NSLog(@"Data length - %d", [data length]);
 //        
-//        [[ProtocolManager sharedInstance] doMultipartPost:@"upload.php" andData:data withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+//        [[ProtocolManager sharedInstance] doMultipartPost:@"/fileupload.php" andData:data withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
 //            if (status == 200) {
-//                NSLog(@"File upload was successful");
+//                NSLog(@"File upload was successful - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 //            }
 //        }];
 //    }

@@ -328,7 +328,29 @@ static ProtocolManager *sharedInstance = nil;
 #pragma mark - 
 
 #pragma mark Send Requests
+
 - (void) doGet:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doGet:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+- (void) doPost:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doPost:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+- (void) doPut:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doPut:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+- (void) doDelete:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+    [self doDelete:route headers:nil params:params contentType:kProtocolContentTypeFormData withBlock:block];
+}
+
+
+#pragma mark - 
+
+#pragma mark Send Requests - headers, params, content type
+
+- (void) doGet:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -362,7 +384,7 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doPost:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) doPost:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -372,18 +394,31 @@ static ProtocolManager *sharedInstance = nil;
         });
         
     } else {
+        
+        // Organizes headers
+        NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
+        [allHeaders setDictionary:_httpHeaders];
+        [allHeaders setDictionary:headers];
     
-        NSString *queryStr = [self dictToQueryString:params];
-        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [queryStr length]];
+        // Creates body
+        NSData *body = nil;
+        if ([kProtocolContentTypeFormData isEqualToString:contentType]) {
+            body = [[self dictToQueryString:params] dataUsingEncoding:NSUTF8StringEncoding];
+        } else {
+            body = [NSJSONSerialization dataWithJSONObject:params options:0 error:nil];
+        }
+        
+        // Gets body length
+        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [body length]];
         
         // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        [request setAllHTTPHeaderFields:_httpHeaders];
+        [request setAllHTTPHeaderFields:allHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
         [request setHTTPMethod:@"POST"];
-        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField: @"Content-Type"];
+        [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
         [request addValue:contentLengthStr forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:[queryStr dataUsingEncoding:NSUTF8StringEncoding]];
+        [request setHTTPBody:body];
         
         // Sends request asynchronous
         [self sendAsynchronousRequest:request withBlock:block];
@@ -391,7 +426,7 @@ static ProtocolManager *sharedInstance = nil;
     }
 }
 
-- (void) doPut:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) doPut:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -401,18 +436,31 @@ static ProtocolManager *sharedInstance = nil;
         });
         
     } else {
-    
-        NSString *queryStr = [self dictToQueryString:params];
-        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [queryStr length]];
+        
+        // Organizes headers
+        NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
+        [allHeaders setDictionary:_httpHeaders];
+        [allHeaders setDictionary:headers];
+        
+        // Creates body
+        NSData *body = nil;
+        if ([kProtocolContentTypeFormData isEqualToString:contentType]) {
+            body = [[self dictToQueryString:params] dataUsingEncoding:NSUTF8StringEncoding];
+        } else {
+            body = [NSJSONSerialization dataWithJSONObject:params options:0 error:nil];
+        }
+        
+        // Gets body length
+        NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [body length]];
         
         // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        [request setAllHTTPHeaderFields:_httpHeaders];
+        [request setAllHTTPHeaderFields:allHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
         [request setHTTPMethod:@"PUT"];
-        [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField: @"Content-Type"];
+        [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
         [request addValue:contentLengthStr forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:[queryStr dataUsingEncoding:NSUTF8StringEncoding]];
+        [request setHTTPBody:body];
         
         // Sends request asynchronous
         [self sendAsynchronousRequest:request withBlock:block];
@@ -421,7 +469,7 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doDelete:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) doDelete:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentTypes withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
