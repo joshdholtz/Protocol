@@ -388,10 +388,15 @@ static ProtocolManager *sharedInstance = nil;
             });
             
         } else {
+            
+            // Organizes headers
+            NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
+            [allHeaders addEntriesFromDictionary:_httpHeaders];
+            [allHeaders addEntriesFromDictionary:headers];
     
             // Builds request
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-            [request setAllHTTPHeaderFields:_httpHeaders];
+            [request setAllHTTPHeaderFields:allHeaders];
             [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
             [request setHTTPMethod:@"GET"];
             
@@ -417,8 +422,8 @@ static ProtocolManager *sharedInstance = nil;
         
         // Organizes headers
         NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
-        [allHeaders setDictionary:_httpHeaders];
-        [allHeaders setDictionary:headers];
+        [allHeaders addEntriesFromDictionary:_httpHeaders];
+        [allHeaders addEntriesFromDictionary:headers];
     
         // Creates body
         NSData *body = nil;
@@ -459,8 +464,8 @@ static ProtocolManager *sharedInstance = nil;
         
         // Organizes headers
         NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
-        [allHeaders setDictionary:_httpHeaders];
-        [allHeaders setDictionary:headers];
+        [allHeaders addEntriesFromDictionary:_httpHeaders];
+        [allHeaders addEntriesFromDictionary:headers];
         
         // Creates body
         NSData *body = nil;
@@ -499,10 +504,15 @@ static ProtocolManager *sharedInstance = nil;
         });
         
     } else {
+        
+        // Organizes headers
+        NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
+        [allHeaders addEntriesFromDictionary:_httpHeaders];
+        [allHeaders addEntriesFromDictionary:headers];
     
         // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-        [request setAllHTTPHeaderFields:_httpHeaders];
+        [request setAllHTTPHeaderFields:allHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
         [request setHTTPMethod:@"DELETE"];
         
@@ -517,6 +527,10 @@ static ProtocolManager *sharedInstance = nil;
 
 - (void) sendAsynchronousRequest:(NSMutableURLRequest*)request withBlock: (void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     [self requestNetworkActivityIndicator];
+    
+    if (_debug) {
+        NSLog(@"Request - %@", [[request URL] absoluteString]);
+    }
     
     // Captures response
     NSOperationQueue *queue = [[NSOperationQueue alloc] init];
