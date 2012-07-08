@@ -491,7 +491,7 @@ static ProtocolManager *sharedInstance = nil;
             
             // Sends request asynchronous
             [self sendAsynchronousRequest:request withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
-                if ([self shouldCacheResponse:[[request URL] absoluteString] withMockResponse:_cacheResponsesGET]) {
+                if ([data length] > 0 && [self shouldCacheResponse:[[request URL] absoluteString] withMockResponse:_cacheResponsesGET]) {
                     [[ProtocolPersist sharedInstance] saveRouteCache:route data:data];
                 }
                 
@@ -748,7 +748,9 @@ static ProtocolManager *sharedInstance = nil;
                 return YES;
             }
         } else if ([key isKindOfClass:[NSString class]]) {
-            return [((NSString*)key) isEqualToString:route];
+            if ([((NSString*)key) isEqualToString:route]) {
+                return YES;
+            }
         }
         
     }
