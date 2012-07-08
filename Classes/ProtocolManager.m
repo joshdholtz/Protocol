@@ -472,7 +472,6 @@ static ProtocolManager *sharedInstance = nil;
                 route = [NSString stringWithFormat:@"%@?%@", route, [self dictToQueryString:params]];
             }
             
-            NSString *fullRoute = [self fullRoute:route];
             NSData *cachedResponse = [self findCachedResponse:route withMockResponse:_cacheResponsesGET];
             if (cachedResponse != nil) {
                 block(nil, 200, cachedResponse);
@@ -486,12 +485,18 @@ static ProtocolManager *sharedInstance = nil;
             // Builds request
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             [request setAllHTTPHeaderFields:allHeaders];
-            [request setURL:[NSURL URLWithString:fullRoute]];
+            [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
             [request setHTTPMethod:@"GET"];
             [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
             
             // Sends request asynchronous
-            [self sendAsynchronousRequest:request withBlock:block];
+            [self sendAsynchronousRequest:request withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+                if ([self shouldCacheResponse:[[request URL] absoluteString] withMockResponse:_cacheResponsesGET]) {
+                    [[ProtocolPersist sharedInstance] saveRouteCache:route data:data];
+                }
+                
+                block(response, status, data);
+            }];
             
         }
         
@@ -638,12 +643,6 @@ static ProtocolManager *sharedInstance = nil;
     // Captures response
     NSOperationQueue *queue = [[NSOperationQueue alloc] init];
     [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-        
-        if ([@"GET" isEqualToString:[request HTTPMethod]]) {
-            if ([self shouldCacheResponse:[[request URL] absoluteString] withMockResponse:_cacheResponsesGET]) {
-                [[ProtocolPersist sharedInstance] saveRouteCache:[[request URL] absoluteString] data:data];
-            }
-        }
         
         [self releaseNetworkActivityIndicator];
         
