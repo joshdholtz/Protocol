@@ -26,22 +26,30 @@
     [super viewDidLoad];
     
     [[ProtocolManager sharedInstance] setBaseURL:@"http://joshdholtz.com"];
+    
+    [[ProtocolManager sharedInstance] registerCacheResponse:@"http://joshdholtz.com/protocol.php?example=member_1" withMethod:kProtocolRouteGET];
+    
+    [[ProtocolManager sharedInstance] doGet:@"http://joshdholtz.com/protocol.php?example=member_1" params:nil withJSONBlock:^(NSURLResponse *response, NSUInteger status, id jsonData) {
+        
+        NSLog(@"Response - %@", jsonData);
+        
+    }];
      
-    NSData *routeCacheData = [[ProtocolPersist sharedInstance] getRouteCache:@"http://joshdholtz.com/test"];
-    if (routeCacheData == nil) {
-        NSLog(@"We don't have route cache");
-    } else {
-        NSLog(@"We got route cache - %@", [[NSString alloc] initWithData:routeCacheData encoding:NSUTF8StringEncoding]);
-    }
-    
-    [[ProtocolPersist sharedInstance] saveRouteCache:@"http://joshdholtz.com/test" data:[@"Test data" dataUsingEncoding:NSUTF8StringEncoding]];
-    
-    routeCacheData = [[ProtocolPersist sharedInstance] getRouteCache:@"http://joshdholtz.com/test"];
-    if (routeCacheData == nil) {
-        NSLog(@"We don't have route cache");
-    } else {
-        NSLog(@"We got route cache - %@", [[NSString alloc] initWithData:routeCacheData encoding:NSUTF8StringEncoding]);
-    }
+//    NSData *routeCacheData = [[ProtocolPersist sharedInstance] getRouteCache:@"http://joshdholtz.com/test"];
+//    if (routeCacheData == nil) {
+//        NSLog(@"We don't have route cache");
+//    } else {
+//        NSLog(@"We got route cache - %@", [[NSString alloc] initWithData:routeCacheData encoding:NSUTF8StringEncoding]);
+//    }
+//    
+//    [[ProtocolPersist sharedInstance] saveRouteCache:@"http://joshdholtz.com/test" data:[@"Test data" dataUsingEncoding:NSUTF8StringEncoding]];
+//    
+//    routeCacheData = [[ProtocolPersist sharedInstance] getRouteCache:@"http://joshdholtz.com/test"];
+//    if (routeCacheData == nil) {
+//        NSLog(@"We don't have route cache");
+//    } else {
+//        NSLog(@"We got route cache - %@", [[NSString alloc] initWithData:routeCacheData encoding:NSUTF8StringEncoding]);
+//    }
     
 //    [[ProtocolPersist sharedInstance] setRelationship:[Member class] to:[Pet class] as:ProtocolRelationshipOneToOne];
     

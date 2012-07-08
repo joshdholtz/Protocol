@@ -8,6 +8,8 @@
 
 #import "ProtocolManager.h"
 
+#import "ProtocolPersist.h"
+
 #import <Foundation/NSJSONSerialization.h> 
 
 @interface ProtocolManager()
@@ -18,6 +20,11 @@
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesPOST;
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesPUT;
 @property (nonatomic, strong) NSMutableDictionary *mockResponsesDELETE;
+
+@property (nonatomic, strong) NSMutableArray *cacheResponsesGET;
+@property (nonatomic, strong) NSMutableArray *cacheResponsesPOST;
+@property (nonatomic, strong) NSMutableArray *cacheResponsesPUT;
+@property (nonatomic, strong) NSMutableArray *cacheResponsesDELETE;
 
 @property (nonatomic, strong) NSMutableDictionary *cachedResponsesGET;
 
@@ -41,6 +48,11 @@
 @synthesize mockResponsesPOST = _mockResponsesPOST;
 @synthesize mockResponsesPUT = _mockResponsesPUT;
 @synthesize mockResponsesDELETE = _mockResponsesDELETE;
+
+@synthesize cacheResponsesGET = _cacheResponsesGET;
+@synthesize cacheResponsesPOST = _cacheResponsesPOST;
+@synthesize cacheResponsesPUT = _cacheResponsesPUT;
+@synthesize cacheResponsesDELETE = _cacheResponsesDELETE;
 
 @synthesize cachedResponsesGET = _cachedResponsesGET;
 
@@ -77,6 +89,11 @@ static ProtocolManager *sharedInstance = nil;
         _mockResponsesDELETE = [[NSMutableDictionary alloc] init];
         
         _cachedResponsesGET = [[NSMutableDictionary alloc] init];
+        
+        _cacheResponsesGET = [NSMutableArray array];
+        _cacheResponsesPOST = [NSMutableArray array];
+        _cacheResponsesPUT = [NSMutableArray array];
+        _cacheResponsesDELETE = [NSMutableArray array];
         
         _observedStatuses = [[NSMutableDictionary alloc] init];
     }
@@ -140,6 +157,52 @@ static ProtocolManager *sharedInstance = nil;
             break;
     }
 
+}
+
+#pragma mark - Mock Responses
+
+- (void)registerCacheResponse:(id)route withMethod:(NSUInteger)method {
+    
+    switch (method) {
+        case kProtocolRouteGET:
+            [_cacheResponsesGET addObject:route];
+            break;
+        case kProtocolRoutePOST:
+            [_cacheResponsesPOST addObject:route];
+            break;
+        case kProtocolRoutePUT:
+            [_cacheResponsesPUT addObject:route];
+            break;
+        case kProtocolRouteDELETE:
+            [_cacheResponsesDELETE addObject:route];
+            break;
+            
+        default:
+            break;
+    }
+    
+}
+
+- (void)unregisterCacheResponseForRoute:(id)route withMethod:(NSUInteger)method {
+    
+    switch (method) {
+        case kProtocolRouteGET:
+            [_cacheResponsesGET removeObject:route];
+            break;
+        case kProtocolRoutePOST:
+            [_cacheResponsesPOST removeObject:route];
+            break;
+        case kProtocolRoutePUT:
+            [_cacheResponsesPUT removeObject:route];
+            break;
+        case kProtocolRouteDELETE:
+            [_cacheResponsesDELETE removeObject:route];
+            break;
+            
+        default:
+            break;
+    }
+    
 }
 
 #pragma mark -
@@ -409,6 +472,12 @@ static ProtocolManager *sharedInstance = nil;
                 route = [NSString stringWithFormat:@"%@?%@", route, [self dictToQueryString:params]];
             }
             
+            NSString *fullRoute = [self fullRoute:route];
+            NSData *cachedResponse = [self findCachedResponse:route withMockResponse:_cacheResponsesGET];
+            if (cachedResponse != nil) {
+                block(nil, 200, cachedResponse);
+            }
+            
             // Organizes headers
             NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
             [allHeaders addEntriesFromDictionary:_httpHeaders];
@@ -417,7 +486,7 @@ static ProtocolManager *sharedInstance = nil;
             // Builds request
             NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
             [request setAllHTTPHeaderFields:allHeaders];
-            [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
+            [request setURL:[NSURL URLWithString:fullRoute]];
             [request setHTTPMethod:@"GET"];
             [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
             
@@ -570,6 +639,12 @@ static ProtocolManager *sharedInstance = nil;
     NSOperationQueue *queue = [[NSOperationQueue alloc] init];
     [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         
+        if ([@"GET" isEqualToString:[request HTTPMethod]]) {
+            if ([self shouldCacheResponse:[[request URL] absoluteString] withMockResponse:_cacheResponsesGET]) {
+                [[ProtocolPersist sharedInstance] saveRouteCache:[[request URL] absoluteString] data:data];
+            }
+        }
+        
         [self releaseNetworkActivityIndicator];
         
         int status = [((NSHTTPURLResponse*) response) statusCode];
@@ -659,6 +734,36 @@ static ProtocolManager *sharedInstance = nil;
     
     return nil;
     
+}
+
+- (BOOL)shouldCacheResponse:(NSString *)route withMockResponse:(NSArray*)actionCacheResponses {
+    
+    for (id key in actionCacheResponses) {
+        
+        NSLog(@"Key - %@, Route - %@", key, route);
+        
+        if ([key isKindOfClass:[NSRegularExpression class]]) {
+            NSRange rangeOfFirstMatch = [key rangeOfFirstMatchInString:route options:0 range:NSMakeRange(0, [route length])];
+            if (!NSEqualRanges(rangeOfFirstMatch, NSMakeRange(NSNotFound, 0))) {
+                NSLog(@"We found a registered route");
+                return YES;
+            }
+        } else if ([key isKindOfClass:[NSString class]]) {
+            return [((NSString*)key) isEqualToString:route];
+        }
+        
+    }
+    
+    return NO;
+}
+
+- (NSData*)findCachedResponse:(NSString *)route withMockResponse:(NSArray*)actionCacheResponses {
+        
+    if ([self shouldCacheResponse:route withMockResponse:actionCacheResponses]) {
+        return [[ProtocolPersist sharedInstance] getRouteCache:route];
+    }
+    
+    return nil;
 }
 
 - (void)requestNetworkActivityIndicator {

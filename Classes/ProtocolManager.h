@@ -37,6 +37,9 @@
 - (void) registerMockResponse:(NSData*)response withRoute:(id)route withMethod:(NSUInteger)method;
 - (void) unregisterMockResponseForRoute:(id)route withMethod:(NSUInteger)method;
 
+- (void) registerCacheResponse:(id)route withMethod:(NSUInteger)method;
+- (void) unregisterCacheResponseForRoute:(id)route withMethod:(NSUInteger)method;
+
 - (void) addCachedResponse:(NSString*)route withData:(NSData*)data;
 - (void) removeCachedResponse:(NSString*)route;
 - (void) removeAllCachedResponses;
