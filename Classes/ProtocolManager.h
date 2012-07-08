@@ -64,12 +64,14 @@
 - (void) doPost:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 - (void) doPut:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 - (void) doDelete:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
+- (void) doRequest:(NSURLRequest*)request withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block;
 
 #pragma mark - Requests with data block
 - (void) doGet:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
 - (void) doPost:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
 - (void) doPut:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
 - (void) doDelete:(NSString*)route params:(NSDictionary*)params withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
+- (void) doRequest:(NSURLRequest*)request withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;
 
 #pragma mark - Requests headers, params, and content type with data block
 - (void) doGet:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block;

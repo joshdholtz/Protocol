@@ -345,6 +345,21 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
+- (void) doRequest:(NSURLRequest*)request withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id jsonData))block {
+    
+    [self doRequest:request withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+        
+        id jsonData = nil;
+        if (data != nil) {
+            jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+        }
+        
+        block(response, status, jsonData);
+        
+    }];
+    
+}
+
 #pragma mark - 
 
 #pragma mark Send Requests
@@ -389,6 +404,11 @@ static ProtocolManager *sharedInstance = nil;
             
         } else {
             
+            // Add query params to url
+            if (params != nil && [params count] > 0) {
+                route = [NSString stringWithFormat:@"%@?%@", route, [self dictToQueryString:params]];
+            }
+            
             // Organizes headers
             NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
             [allHeaders addEntriesFromDictionary:_httpHeaders];
@@ -399,6 +419,7 @@ static ProtocolManager *sharedInstance = nil;
             [request setAllHTTPHeaderFields:allHeaders];
             [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
             [request setHTTPMethod:@"GET"];
+            [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
             
             // Sends request asynchronous
             [self sendAsynchronousRequest:request withBlock:block];
@@ -494,7 +515,7 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
-- (void) doDelete:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentTypes withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) doDelete:(NSString*)route headers:(NSDictionary*)headers params:(NSDictionary*)params contentType:(NSString*)contentType withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     
     if (_mockResponseOn) {
         
@@ -504,6 +525,11 @@ static ProtocolManager *sharedInstance = nil;
         });
         
     } else {
+        
+        // Add query params to url
+        if (params != nil && [params count] > 0) {
+            route = [NSString stringWithFormat:@"%@?%@", route, [self dictToQueryString:params]];
+        }
         
         // Organizes headers
         NSMutableDictionary *allHeaders = [[NSMutableDictionary alloc] init];
@@ -515,6 +541,7 @@ static ProtocolManager *sharedInstance = nil;
         [request setAllHTTPHeaderFields:allHeaders];
         [request setURL:[NSURL URLWithString:[self fullRoute:route]]];
         [request setHTTPMethod:@"DELETE"];
+        [request setValue:contentType forHTTPHeaderField: @"Content-Type"];
         
         // Sends request asynchronous
         [self sendAsynchronousRequest:request withBlock:block];
@@ -523,13 +550,20 @@ static ProtocolManager *sharedInstance = nil;
     
 }
 
+- (void) doRequest:(NSURLRequest*)request withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+
+    // Sends request asynchronous
+    [self sendAsynchronousRequest:request withBlock:block];
+    
+}
+
 #pragma mark - Private
 
-- (void) sendAsynchronousRequest:(NSMutableURLRequest*)request withBlock: (void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
+- (void) sendAsynchronousRequest:(NSURLRequest*)request withBlock: (void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
     [self requestNetworkActivityIndicator];
     
     if (_debug) {
-        NSLog(@"Request - %@", [[request URL] absoluteString]);
+        NSLog(@"%@ - %@", [request HTTPMethod], [[request URL] absoluteString]);
     }
     
     // Captures response
@@ -545,10 +579,7 @@ static ProtocolManager *sharedInstance = nil;
         
         dispatch_async(dispatch_get_main_queue(), ^{
             
-            NSLog(@"What is our status - %d", status);
-            
             if ([_observedStatuses objectForKey:[[NSNumber alloc] initWithInt:status]]) {
-                NSLog(@"Observing for status - %d", status);
                 
                 void(^statusBlock)(NSURLResponse *response, NSUInteger status, NSData* data);
                 statusBlock = [_observedStatuses objectForKey:[[NSNumber alloc] initWithInt:status]];
@@ -564,7 +595,7 @@ static ProtocolManager *sharedInstance = nil;
 }
 
 - (NSString*)fullRoute:(NSString*)route {
-    if ([route hasPrefix:@"http"]) {
+    if (_baseURL == nil || [route hasPrefix:@"http"]) {
         return route;
     } else {
         return [[NSString alloc] initWithFormat:@"%@%@", _baseURL, route];

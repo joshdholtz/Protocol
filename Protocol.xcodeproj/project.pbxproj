@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0310AC7C156FBF0900297FF5 /* Pet.m in Sources */ = {isa = PBXBuildFile; fileRef = 0310AC7B156FBF0900297FF5 /* Pet.m */; };
 		032F6485153A1377004E22FA /* ProtocolPersist.m in Sources */ = {isa = PBXBuildFile; fileRef = 032F6484153A1377004E22FA /* ProtocolPersist.m */; };
 		032F6488153A1606004E22FA /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 032F6487153A1606004E22FA /* libsqlite3.dylib */; };
 		035184EF1537A7CC000081DD /* me_coding.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 035184EE1537A7CC000081DD /* me_coding.jpg */; };
@@ -28,6 +29,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0310AC7A156FBF0900297FF5 /* Pet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Pet.h; sourceTree = "<group>"; };
+		0310AC7B156FBF0900297FF5 /* Pet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Pet.m; sourceTree = "<group>"; };
 		032F6483153A1377004E22FA /* ProtocolPersist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolPersist.h; sourceTree = "<group>"; };
 		032F6484153A1377004E22FA /* ProtocolPersist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolPersist.m; sourceTree = "<group>"; };
 		032F6487153A1606004E22FA /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
@@ -119,6 +122,8 @@
 				03B918BE153117F900ADFAEA /* ViewController.h */,
 				03B918BF153117F900ADFAEA /* ViewController.m */,
 				03B918AD153117F800ADFAEA /* Supporting Files */,
+				0310AC7A156FBF0900297FF5 /* Pet.h */,
+				0310AC7B156FBF0900297FF5 /* Pet.m */,
 			);
 			path = Protocol;
 			sourceTree = "<group>";
@@ -237,6 +242,7 @@
 				03B918D0153118AE00ADFAEA /* Member.m in Sources */,
 				032F6485153A1377004E22FA /* ProtocolPersist.m in Sources */,
 				03DFE5FE153DB83A00BABD48 /* Reachability.m in Sources */,
+				0310AC7C156FBF0900297FF5 /* Pet.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

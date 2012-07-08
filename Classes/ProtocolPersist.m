@@ -15,6 +15,7 @@
 @implementation ProtocolPersist
 
 @synthesize databaseFilePath = _databaseFilePath;
+@synthesize objectRelationships = _objectRelationships;
 
 static ProtocolPersist *sharedInstance = nil;
 
@@ -37,9 +38,129 @@ static ProtocolPersist *sharedInstance = nil;
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths objectAtIndex:0];
         _databaseFilePath = [[NSString alloc] initWithFormat:@"%@/%@", documentsDirectory, @"ProtocolPersist.sqlite"];
+        
+        _objectRelationships = [NSMutableDictionary dictionary];
     }
     
     return self;
+}
+
+#pragma makr - Route Caching
+
+- (void)saveRouteCache:(NSString*)route data:(NSData*)data {
+    
+    if ([self getRouteCache:route] == nil) {
+    
+        NSString *tableName = @"RouteCache";
+        if (![self doesTableExist:tableName]) {
+            NSLog(@"Table does not exist");
+            [self createCacheTable];
+            NSLog(@"Created table");
+        }
+        NSLog(@"After checking table");
+        
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:@"yyyy-MM-dd HH:mm"];
+        
+        sqlite3 *database = [self openDatabase];
+        
+        sqlite3_stmt *insert_statement;     
+        char *sql = "INSERT INTO RouteCache (ROUTE, DATA, DATE) VALUES (? ,?, ?)" ;
+        if(sqlite3_prepare_v2(database, sql, -1, &insert_statement, NULL) != SQLITE_OK)
+        {
+            //handle error
+            NSLog(@"We got an error - %@", [NSString stringWithUTF8String:sqlite3_errmsg(database)]);
+        } 
+        
+        sqlite3_bind_text(insert_statement, 1, [route UTF8String], -1, SQLITE_TRANSIENT);
+        sqlite3_bind_blob(insert_statement, 2, [data bytes], [data length], NULL);
+        sqlite3_bind_text(insert_statement, 3, [[formatter stringFromDate:[NSDate date]] UTF8String], -1, SQLITE_TRANSIENT);
+        
+        if(SQLITE_DONE != sqlite3_step(insert_statement)) {
+            NSAssert1(0, @"Error while inserting data. '%s'", sqlite3_errmsg(database));
+        } else {
+            NSLog(@"We inserted a record");
+        }
+        
+        [self closeDatabase:database];
+        
+    } else {
+        
+        NSString *tableName = @"RouteCache";
+        if (![self doesTableExist:tableName]) {
+            NSLog(@"Table does not exist");
+            [self createCacheTable];
+            NSLog(@"Created table");
+        }
+        NSLog(@"After checking table");
+        
+        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:@"yyyy-MM-dd HH:mm"];
+        
+        sqlite3 *database = [self openDatabase];
+        
+        sqlite3_stmt *insert_statement;     
+        char *sql = "update RouteCache set DATA = ?, DATE = ? WHERE ROUTE = ?;" ;
+        if(sqlite3_prepare_v2(database, sql, -1, &insert_statement, NULL) != SQLITE_OK)
+        {
+            //handle error
+            NSLog(@"We got an error - %@", [NSString stringWithUTF8String:sqlite3_errmsg(database)]);
+        } 
+        
+        sqlite3_bind_blob(insert_statement, 1, [data bytes], [data length], NULL);
+        sqlite3_bind_text(insert_statement, 2, [[formatter stringFromDate:[NSDate date]] UTF8String], -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(insert_statement, 3, [route UTF8String], -1, SQLITE_TRANSIENT);
+        
+        if(SQLITE_DONE != sqlite3_step(insert_statement)) {
+            NSAssert1(0, @"Error while updating data. '%s'", sqlite3_errmsg(database));
+        } else {
+            NSLog(@"We updated a record");
+        }
+
+        [self closeDatabase:database];
+        
+    }
+    
+}
+
+- (NSData*)getRouteCache:(NSString*)route {
+    
+    NSData *data = nil;
+    
+    NSString *query = @"SELECT DATA, DATE FROM RouteCache WHERE ROUTE = ?;";
+    
+    sqlite3 *database = [self openDatabase];
+    sqlite3_stmt *statement = [self prepareDatabaseQuery:database withSQL:query];
+    sqlite3_bind_text(statement, 1, [route UTF8String], -1, SQLITE_TRANSIENT);
+    
+    while (sqlite3_step(statement) == SQLITE_ROW) {
+        NSLog(@"We found result");
+
+        data = [[NSData alloc] initWithBytes:sqlite3_column_blob(statement, 0) length: sqlite3_column_bytes(statement, 0)]; 
+        
+//        NSString *dateField = [[NSString alloc] initWithUTF8String:
+//                               (const char *) sqlite3_column_text(statement, 1)];
+    }
+    sqlite3_finalize(statement);
+    
+    [self closeDatabase:database];
+    
+    return data;
+    
+}
+
+#pragma mark - Protocol Object Relationship Methods
+
+- (void)setRelationship:(Class)fromClass to:(Class)toClass as:(ProtoclRelationshipTypes)relationshipType {
+    
+    NSMutableDictionary *classDict = [_objectRelationships objectForKey:fromClass];
+    if (classDict == nil) {
+        classDict = [NSMutableDictionary dictionary];
+        [_objectRelationships setObject:classDict forKey:fromClass];
+    }
+    
+    [classDict setObject:[NSNumber numberWithInt:relationshipType] forKey:toClass];
+    
 }
 
 #pragma mark - Protocol Object Methods
@@ -117,7 +238,7 @@ static ProtocolPersist *sharedInstance = nil;
 }
 
 - (void)saveObject:(ProtocolObject<ProtocolPersistDelegate>*)protocolObject {
-    NSDictionary *dict = [protocolObject dictionaryWithValuesForKeys:[protocolObject propertiesToSave]];
+    NSDictionary *dict = [protocolObject dictionaryWithValuesForKeys:[protocolObject propertiesToPersist]];
     
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:0 error:nil];
     NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -286,6 +407,19 @@ static ProtocolPersist *sharedInstance = nil;
     char *errMsg = nil;
     if (sqlite3_exec(database, sql_stmt, NULL, NULL, &errMsg) == SQLITE_OK) {
         NSLog(@"Table created for - %@", tableName);
+    }
+    [self closeDatabase:database];
+}
+
+- (void)createCacheTable {
+    NSString *query = [[NSString alloc] initWithFormat:@"CREATE TABLE IF NOT EXISTS %@ (ID INTEGER PRIMARY KEY AUTOINCREMENT, ROUTE TEXT, DATA BLOB, DATE TEXT)", @"RouteCache"];
+    
+    sqlite3 *database = [self openDatabase];
+    const char *sql_stmt = [query UTF8String];
+    
+    char *errMsg = nil;
+    if (sqlite3_exec(database, sql_stmt, NULL, NULL, &errMsg) == SQLITE_OK) {
+        NSLog(@"Table created for - %@", @"RouteCache");
     }
     [self closeDatabase:database];
 }

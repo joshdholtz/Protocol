@@ -28,7 +28,7 @@
     return _memberId;
 }
 
-- (NSArray *)propertiesToSave {
+- (NSArray *)propertiesToPersist {
     return [[NSArray alloc] initWithObjects:@"memberId", @"firstName", @"lastName", nil];
 }
 

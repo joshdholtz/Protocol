@@ -11,6 +11,7 @@
 #import "ProtocolManager.h"
 #import "ProtocolPersist.h"
 #import "Member.h"
+#import "Pet.h"
 
 #import "Reachability.h"
 
@@ -24,18 +25,38 @@
 {
     [super viewDidLoad];
     
-//    [[ProtocolManager sharedInstance] setBaseURL:@"http://192.168.1.7"];
+    [[ProtocolManager sharedInstance] setBaseURL:@"http://joshdholtz.com"];
+     
+    NSData *routeCacheData = [[ProtocolPersist sharedInstance] getRouteCache:@"http://joshdholtz.com/test"];
+    if (routeCacheData == nil) {
+        NSLog(@"We don't have route cache");
+    } else {
+        NSLog(@"We got route cache - %@", [[NSString alloc] initWithData:routeCacheData encoding:NSUTF8StringEncoding]);
+    }
+    
+    [[ProtocolPersist sharedInstance] saveRouteCache:@"http://joshdholtz.com/test" data:[@"Test data" dataUsingEncoding:NSUTF8StringEncoding]];
+    
+    routeCacheData = [[ProtocolPersist sharedInstance] getRouteCache:@"http://joshdholtz.com/test"];
+    if (routeCacheData == nil) {
+        NSLog(@"We don't have route cache");
+    } else {
+        NSLog(@"We got route cache - %@", [[NSString alloc] initWithData:routeCacheData encoding:NSUTF8StringEncoding]);
+    }
+    
+//    [[ProtocolPersist sharedInstance] setRelationship:[Member class] to:[Pet class] as:ProtocolRelationshipOneToOne];
+    
+    
 //    [[ProtocolManager sharedInstance] setBaseURL:@"http://kingofti.me"];
     
-    [[ProtocolManager sharedInstance] setBaseURL:@"http://ec2-50-19-13-228.compute-1.amazonaws.com:9090/"];
-    
-    NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:@"MGD",@"name",@"Another beer",@"description", nil];
-    
-    [[ProtocolManager sharedInstance] doPost:@"/drink" headers:nil params:params contentType:kProtocolContentTypeJSON withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
-      
-        NSLog(@"Response - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-        
-    }];
+//    [[ProtocolManager sharedInstance] setBaseURL:@"http://ec2-50-19-13-228.compute-1.amazonaws.com:9090/"];
+//    
+//    NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:@"MGD",@"name",@"Another beer",@"description", nil];
+//    
+//    [[ProtocolManager sharedInstance] doPost:@"/drink" headers:nil params:params contentType:kProtocolContentTypeJSON withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
+//      
+//        NSLog(@"Response - %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+//        
+//    }];
     
 //    Reachability* reach = [Reachability reachabilityWithHostname:@"www.kingofti.me"];
 //    // set the blocks 

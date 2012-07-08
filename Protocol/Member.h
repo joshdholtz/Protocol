@@ -12,7 +12,7 @@
 
 @interface Member : ProtocolObject<ProtocolPersistDelegate>
 
-@property (nonatomic, assign) NSInteger memberId;
+@property (nonatomic, strong) NSNumber *memberId;
 @property (nonatomic, strong) NSString* firstName;
 @property (nonatomic, strong) NSString* lastName;
 
