@@ -8,12 +8,15 @@
 
 #import "ProtocolObject.h"
 
-#import "ProtocolPersist.h"
+#import "Pet.h"
 
-@interface Member : ProtocolObject<ProtocolPersistDelegate>
+@interface Member : ProtocolObject
 
 @property (nonatomic, strong) NSNumber *memberId;
-@property (nonatomic, strong) NSString* firstName;
-@property (nonatomic, strong) NSString* lastName;
+@property (nonatomic, strong) NSString *firstName;
+@property (nonatomic, strong) NSString *lastName;
+@property (nonatomic, strong) NSDate *birthday;
+
+@property (nonatomic, strong) Pet *pet;
 
 @end

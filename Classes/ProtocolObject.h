@@ -13,6 +13,7 @@
 @property (nonatomic, assign) NSInteger primaryId;
 
 + (NSArray*)createWithArray:(NSArray*)jsonArray;
++ (NSArray*)createWithArray:(NSArray*)jsonArray withClass:(Class)protocolObjectClass;
 
 - (id)initWithDictionary:(NSDictionary*)dict andPrimaryId:(NSInteger)primaryId;
 - (id) initWithDictionary:(NSDictionary*)dict;

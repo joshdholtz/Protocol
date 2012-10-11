@@ -30,6 +30,8 @@
 
 @property (nonatomic, strong) NSMutableDictionary *observedStatuses;
 
+@property (nonatomic, strong) NSMutableDictionary *formatBlocks;
+
 - (NSData *)findMockResponse:(NSString *)route withMockResponse:(NSDictionary*)actionMockResponses;
 
 @end
@@ -57,6 +59,8 @@
 @synthesize cachedResponsesGET = _cachedResponsesGET;
 
 @synthesize observedStatuses = _observedStatuses;
+
+@synthesize formatBlocks = _formatBlocks;
 
 @synthesize reachabilityActive = _reachabilityActive;
 
@@ -95,7 +99,9 @@ static ProtocolManager *sharedInstance = nil;
         _cacheResponsesPUT = [NSMutableArray array];
         _cacheResponsesDELETE = [NSMutableArray array];
         
-        _observedStatuses = [[NSMutableDictionary alloc] init];
+        _observedStatuses = [NSMutableDictionary dictionary];
+        
+        _formatBlocks = [NSMutableDictionary dictionary];
     }
     
     return self;
@@ -224,14 +230,31 @@ static ProtocolManager *sharedInstance = nil;
 #pragma mark Observe Status
 
 - (void) observeResponseStatus:(NSInteger)status withBlock:(void(^)(NSURLResponse *response, NSUInteger status, NSData* data))block {
-    [_observedStatuses setObject:block forKey:[[NSNumber alloc] initWithInt:status]];
+    [_observedStatuses setObject:[block copy] forKey:[[NSNumber alloc] initWithInt:status]];
 }
 
 - (void) removeObserveResponseStatus:(NSInteger)status {
     [_observedStatuses removeObjectForKey:[[NSNumber alloc] initWithInt:status]];
 }
 
-#pragma mark - 
+#pragma mark -
+#pragma mark Format Block
+
+- (void)registerFormatBlock:(id (^)(NSString *))block forKey:(NSString *)key {
+    [_formatBlocks setObject:[block copy] forKey:key];
+}
+
+- (id) performFormatBlock:(NSString*)value withKey:(NSString*)key {
+    id(^block)(NSString *);
+    block = [_formatBlocks objectForKey:key];
+    if (block != nil) {
+        return block(value);
+    } else {
+        return nil;
+    }
+}
+
+#pragma mark -
 #pragma mark Send Multipart Requests For JSON
 
 - (void) doMultipartPost:(NSString*)route andData:(NSData*)data withJSONBlock:(void(^)(NSURLResponse *response, NSUInteger status, id json))block {
@@ -491,7 +514,10 @@ static ProtocolManager *sharedInstance = nil;
             
             // Sends request asynchronous
             [self sendAsynchronousRequest:request withBlock:^(NSURLResponse *response, NSUInteger status, NSData *data) {
-                if ([data length] > 0 && [self shouldCacheResponse:[[request URL] absoluteString] withMockResponse:_cacheResponsesGET]) {
+                
+                NSLog(@"STATUS THAT WE GOT - %d", status);
+                
+                if ([data length] > 0 && [self shouldCacheResponse:route withMockResponse:_cacheResponsesGET]) {
                     [[ProtocolPersist sharedInstance] saveRouteCache:route data:data];
                 }
                 
@@ -530,6 +556,9 @@ static ProtocolManager *sharedInstance = nil;
         
         // Gets body length
         NSString *contentLengthStr = [NSString stringWithFormat:@"%d", [body length]];
+        
+        NSLog(@"Route - %@", route);
+        NSLog(@"Full Route - %@", [self fullRoute:route]);
         
         // Builds request
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
@@ -646,7 +675,14 @@ static ProtocolManager *sharedInstance = nil;
         
         [self releaseNetworkActivityIndicator];
         
+        NSLog(@"Response object - %@", response);
+        NSLog(@"Eror - %@", error);
+        
         int status = [((NSHTTPURLResponse*) response) statusCode];
+        if (NSURLErrorUserCancelledAuthentication == [error code]) {
+            status = 401;
+        }
+        
         if (_debug) {
             NSLog(@"%d - %@", status, [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         }
@@ -658,6 +694,8 @@ static ProtocolManager *sharedInstance = nil;
                 void(^statusBlock)(NSURLResponse *response, NSUInteger status, NSData* data);
                 statusBlock = [_observedStatuses objectForKey:[[NSNumber alloc] initWithInt:status]];
                 statusBlock(response, status, data);
+                
+                block(response, status, data);
             } else {
                 block(response, status, data);
             }
@@ -666,6 +704,7 @@ static ProtocolManager *sharedInstance = nil;
         
         
     }];
+    
 }
 
 - (NSString*)fullRoute:(NSString*)route {
@@ -702,11 +741,14 @@ static ProtocolManager *sharedInstance = nil;
 
 - (NSString*) escapeString:(NSString*)string 
 {
-    NSString *s = (__bridge NSString *)CFURLCreateStringByAddingPercentEscapes(NULL,
+    NSString *s = string;
+    if ([string isKindOfClass:[NSString class]]) {
+        s = (__bridge NSString *)CFURLCreateStringByAddingPercentEscapes(NULL,
                                                                                (__bridge CFStringRef)string,
                                                                                NULL,
                                                                                (CFStringRef)@"!*'\"();:@&=+$,/?%#[]% ",
                                                                                kCFStringEncodingUTF8);
+    }
     return s;
 }
 
@@ -749,6 +791,7 @@ static ProtocolManager *sharedInstance = nil;
             }
         } else if ([key isKindOfClass:[NSString class]]) {
             if ([((NSString*)key) isEqualToString:route]) {
+                NSLog(@"We found a registered route");
                 return YES;
             }
         }

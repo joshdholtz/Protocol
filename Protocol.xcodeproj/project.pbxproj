@@ -10,8 +10,6 @@
 		0310AC7C156FBF0900297FF5 /* Pet.m in Sources */ = {isa = PBXBuildFile; fileRef = 0310AC7B156FBF0900297FF5 /* Pet.m */; };
 		032F6485153A1377004E22FA /* ProtocolPersist.m in Sources */ = {isa = PBXBuildFile; fileRef = 032F6484153A1377004E22FA /* ProtocolPersist.m */; };
 		032F6488153A1606004E22FA /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 032F6487153A1606004E22FA /* libsqlite3.dylib */; };
-		035184EF1537A7CC000081DD /* me_coding.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 035184EE1537A7CC000081DD /* me_coding.jpg */; };
-		035184F21537B38F000081DD /* Button_Blue.png in Resources */ = {isa = PBXBuildFile; fileRef = 035184F11537B38F000081DD /* Button_Blue.png */; };
 		03B918A7153117F800ADFAEA /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B918A6153117F800ADFAEA /* UIKit.framework */; };
 		03B918A9153117F800ADFAEA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B918A8153117F800ADFAEA /* Foundation.framework */; };
 		03B918AB153117F800ADFAEA /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B918AA153117F800ADFAEA /* CoreGraphics.framework */; };
@@ -34,8 +32,6 @@
 		032F6483153A1377004E22FA /* ProtocolPersist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProtocolPersist.h; sourceTree = "<group>"; };
 		032F6484153A1377004E22FA /* ProtocolPersist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProtocolPersist.m; sourceTree = "<group>"; };
 		032F6487153A1606004E22FA /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
-		035184EE1537A7CC000081DD /* me_coding.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = me_coding.jpg; path = ../../../Pictures/me_coding.jpg; sourceTree = "<group>"; };
-		035184F11537B38F000081DD /* Button_Blue.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Button_Blue.png; path = ../../../Downloads/Button_Blue.png; sourceTree = "<group>"; };
 		03B918A2153117F800ADFAEA /* Protocol.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Protocol.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		03B918A6153117F800ADFAEA /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		03B918A8153117F800ADFAEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -111,19 +107,17 @@
 		03B918AC153117F800ADFAEA /* Protocol */ = {
 			isa = PBXGroup;
 			children = (
-				035184F11537B38F000081DD /* Button_Blue.png */,
-				035184EE1537A7CC000081DD /* me_coding.jpg */,
 				03B918CE153118AE00ADFAEA /* Member.h */,
 				03B918CF153118AE00ADFAEA /* Member.m */,
+				0310AC7A156FBF0900297FF5 /* Pet.h */,
+				0310AC7B156FBF0900297FF5 /* Pet.m */,
+				03B918BE153117F900ADFAEA /* ViewController.h */,
+				03B918BF153117F900ADFAEA /* ViewController.m */,
 				03B918B5153117F800ADFAEA /* AppDelegate.h */,
 				03B918B6153117F800ADFAEA /* AppDelegate.m */,
 				03B918B8153117F800ADFAEA /* MainStoryboard_iPhone.storyboard */,
 				03B918BB153117F900ADFAEA /* MainStoryboard_iPad.storyboard */,
-				03B918BE153117F900ADFAEA /* ViewController.h */,
-				03B918BF153117F900ADFAEA /* ViewController.m */,
 				03B918AD153117F800ADFAEA /* Supporting Files */,
-				0310AC7A156FBF0900297FF5 /* Pet.h */,
-				0310AC7B156FBF0900297FF5 /* Pet.m */,
 			);
 			path = Protocol;
 			sourceTree = "<group>";
@@ -222,8 +216,6 @@
 				03B918B1153117F800ADFAEA /* InfoPlist.strings in Resources */,
 				03B918BA153117F900ADFAEA /* MainStoryboard_iPhone.storyboard in Resources */,
 				03B918BD153117F900ADFAEA /* MainStoryboard_iPad.storyboard in Resources */,
-				035184EF1537A7CC000081DD /* me_coding.jpg in Resources */,
-				035184F21537B38F000081DD /* Button_Blue.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -326,10 +318,12 @@
 		03B918C4153117F900ADFAEA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer: Josh Holtz (M57ML2945L)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Protocol/Protocol-Prefix.pch";
 				INFOPLIST_FILE = "Protocol/Protocol-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "AD704BFC-0FDB-46DC-90ED-1C63AE18C5EC";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -337,10 +331,12 @@
 		03B918C5153117F900ADFAEA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer: Josh Holtz (M57ML2945L)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Protocol/Protocol-Prefix.pch";
 				INFOPLIST_FILE = "Protocol/Protocol-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "AD704BFC-0FDB-46DC-90ED-1C63AE18C5EC";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
