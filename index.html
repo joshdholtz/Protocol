@@ -220,17 +220,17 @@
 					var varName = this.varName();
 
 					if (typeof(value) == "string") {
-						return "private String " + varName + ";";	
+						return "@ModelMap(key = \"" + this.varName() + "\") private String " + varName + ";";	
 					} else if (typeof(value) == "number") {
 
 						if (value % 1 === 0) {
-							return "private int " + varName + ";"
+							return "@ModelMap(key = \"" + this.varName() + "\") private int " + varName + ";"
 						} else {
-							return "private double " + varName + ";"
+							return "@ModelMap(key = \"" + this.varName() + "\") private double " + varName + ";"
 						}
 
 					} else if (typeof(value) == "boolean") {
-						return "private boolean " + varName + ";";	
+						return "@ModelMap(key = \"" + this.varName() + "\") private boolean " + varName + ";";	
 					}
 
 				};
