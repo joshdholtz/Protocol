@@ -220,19 +220,19 @@
 					var varName = this.varName();
 
 					if (typeof(value) == "string") {
-						return "@ModelMap(key = \"" + this.varName() + "\") private String " + varName + ";";	
+						return "@MapConfig(key = \"" + this.varName() + "\") private String " + varName + ";";	
 					} else if (typeof(value) == "number") {
 
 						if (value % 1 === 0) {
-							return "@ModelMap(key = \"" + this.varName() + "\") private int " + varName + ";"
+							return "@MapConfig(key = \"" + this.varName() + "\") private int " + varName + ";"
 						} else {
-							return "@ModelMap(key = \"" + this.varName() + "\") private double " + varName + ";"
+							return "@MapConfig(key = \"" + this.varName() + "\") private double " + varName + ";"
 						}
 
 					} else if (typeof(value) == "boolean") {
-						return "@ModelMap(key = \"" + this.varName() + "\") private boolean " + varName + ";";	
+						return "@MapConfig(key = \"" + this.varName() + "\") private boolean " + varName + ";";	
 					} else {
-						return "@ModelMap(key = \"" + this.varName() + "\") private Object " + varName + ";";	
+						return "@MapConfig(key = \"" + this.varName() + "\") private Object " + varName + ";";	
 					}
 
 				};
