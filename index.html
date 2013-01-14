@@ -231,6 +231,8 @@
 
 					} else if (typeof(value) == "boolean") {
 						return "@ModelMap(key = \"" + this.varName() + "\") private boolean " + varName + ";";	
+					} else {
+						return "@ModelMap(key = \"" + this.varName() + "\") private Object " + varName + ";";	
 					}
 
 				};
